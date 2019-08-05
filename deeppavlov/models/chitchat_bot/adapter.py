@@ -50,11 +50,41 @@ class ChitChatBotAdapter(Component):
                     "sender_id": "text",
                     "sender_class": "text",
                     "profile": ["text1", "text2"],
-                    "top1ics": ["text1", "text2"],
+                    "topics": ["text1", "text2"],
                 },
             ],
         }
     ]
+    Expample of input_data for riseapi:
+    {
+  "context":     [
+        {
+            "dialog": [
+                {
+                    "sender_id": "text",
+                    "sender_class": "text",
+                    "text": "text",
+                    "system": false,
+                    "time": "text"
+                }
+            ],
+            "start_time": "text",
+            "users": [
+                {
+                    "sender_id": "text",
+                    "sender_class": "text",
+                    "profile": ["text1", "text2"],
+                    "topics": ["text1", "text2"]
+                },
+                {
+                    "sender_id": "text",
+                    "sender_class": "text",
+                    "profile": ["text1", "text2"],
+                    "topics": ["text1", "text2"]
+                }
+            ]
+        }
+    ]}
 """
 
     def __init__(self, **kwargs):
@@ -116,7 +146,8 @@ class ChitChatBotAdapter(Component):
 
     @overrides
     def __call__(self, input_data, *args, **kwargs):
-        log.info(input_data)
+        if input_data and isinstance(input_data, list) and isinstance(input_data[0], list):
+            return ["Received data is empty"]
         try:
             validate(instance=input_data, schema=self.schema)
         except Exception as ex:
