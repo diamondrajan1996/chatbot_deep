@@ -150,7 +150,7 @@ class ChitChatBotAdapter(Component):
         try:
             validate(instance=input_data, schema=self.schema)
         except Exception as ex:
-            res = f"Structure error of input_data\n{ex}"
+            res = f"Structure error of input_data\n{ex} \n BATCH ENTIRE CORRUPTED"
             log.error(res)
             return [res]*num_batch, [False]*num_batch
         return ["Received data accepted"]*num_batch, [True]*num_batch
