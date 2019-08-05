@@ -1,0 +1,81 @@
+{
+  "chainer": {
+    "in": [
+      "x"
+    ],
+    "pipe": [
+      {
+        "config_path": "{CONFIGS_PATH}/morpho_tagger/UD2.0/morpho_ru_syntagrus_pymorphy.json",
+        "in": [
+          "x"
+        ],
+        "out": [
+          "morpho_tags"
+        ]
+      },
+      {
+        "in": [
+          "x"
+        ],
+        "class_name": "lazy_tokenizer",
+        "out": [
+          "x_tokens"
+        ]
+      },
+      {
+        "in": [
+          "x_tokens",
+          "morpho_tags"
+        ],
+        "out": [
+          "variants"
+        ],
+        "class_name": "thesaurus_augmentation",
+        "lang": "rus",
+        "penalty_for_source_token": 0.8,
+        "isalpha_only": true,
+        "ru_thes_dirpath": "{DOWNLOADS_PATH}/ruthes_lite2/",
+        "replace_freq": 0.95,
+        "with_source_token": true,
+        "not_replaced_tokens": ["нравится", "любить", "блин", "быть", "работать", "класс"],
+        "replaced_pos_tags": ["NOUN", "VERB", "ADV", "ADJ"]
+      },
+      {
+        "in": "variants",
+        "out": "aug_x_tok",
+        "class_name": "deeppavlov.models.spelling_correction.electors.kenlm_elector:KenlmElector",
+        "load_path": "{DOWNLOADS_PATH}/language_models/ru_wiyalen_no_punkt.arpa.binary"
+      },
+      {
+        "in": "aug_x_tok",
+        "out": "aug_x",
+        "class_name": "ru_tokenizer"
+      }
+    ],
+    "out": [
+      "aug_x"
+    ]
+  },
+  "metadata": {
+    "requirements": [
+      "{DEEPPAVLOV_PATH}/requirements/augmentation_thes.txt",
+      "{DEEPPAVLOV_PATH}/requirements/tf-gpu.txt"
+    ],
+    "variables": {
+      "ROOT_PATH": "~/.deeppavlov",
+      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
+      "MODELS_PATH": "{ROOT_PATH}/models",
+      "CONFIGS_PATH": "{DEEPPAVLOV_PATH}/configs"
+    },
+    "download": [
+      {
+        "url":"http://files.deeppavlov.ai/deeppavlov_data/syn_thes_ruthes_lite2.zip",
+        "subdir": "{DOWNLOADS_PATH}"
+      },
+      {
+        "url": "http://files.deeppavlov.ai/lang_models/ru_wiyalen_no_punkt.arpa.binary.gz",
+        "subdir": "{DOWNLOADS_PATH}/language_models"
+      }
+    ]
+  }
+}
