@@ -146,8 +146,6 @@ class ChitChatBotAdapter(Component):
 
     @overrides
     def __call__(self, input_data, *args, **kwargs):
-        if input_data and isinstance(input_data, list) and isinstance(input_data[0], list):
-            return ["Received data is empty"]
         try:
             validate(instance=input_data, schema=self.schema)
         except Exception as ex:
