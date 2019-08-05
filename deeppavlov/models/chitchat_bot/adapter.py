@@ -153,4 +153,4 @@ class ChitChatBotAdapter(Component):
             res = f"Structure error of input_data\n{ex}"
             log.error(res)
             return [res]*num_batch, [False]*num_batch
-        return ["Received data accepted"]*num_batch, [False]*num_batch
+        return ["Received data accepted"]*num_batch, [True]*num_batch
