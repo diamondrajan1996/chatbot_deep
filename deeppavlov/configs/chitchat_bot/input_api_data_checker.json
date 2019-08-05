@@ -6,10 +6,10 @@
         "class_name": "chitchat_bot_adapter",
         "id": "adapter",
         "in": ["x"],
-        "out": ["status"]
+        "out": ["msg", "status"]
       }
     ],
-    "out": ["status"]
+    "out": ["msg", "status"]
   },
   "metadata": {
     "variables": {

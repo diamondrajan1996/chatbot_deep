@@ -146,10 +146,11 @@ class ChitChatBotAdapter(Component):
 
     @overrides
     def __call__(self, input_data, *args, **kwargs):
+        num_batch = len(input_data) if isinstance(input_data, list) else 1
         try:
             validate(instance=input_data, schema=self.schema)
         except Exception as ex:
             res = f"Structure error of input_data\n{ex}"
             log.error(res)
-            return [res]
-        return ["Received data accepted"]
+            return [res]*num_batch, [False]*num_batch
+        return ["Received data accepted"]*num_batch, [False]*num_batch
