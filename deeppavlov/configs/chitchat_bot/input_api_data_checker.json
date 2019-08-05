@@ -1,0 +1,24 @@
+{
+  "chainer":{
+    "in": ["x"],
+    "pipe": [
+      {
+        "class_name": "chitchat_bot_adapter",
+        "id": "adapter",
+        "in": ["x"],
+        "out": ["status"]
+      }
+    ],
+    "out": ["status"]
+  },
+  "metadata": {
+    "variables": {
+      "ROOT_PATH": "~/.deeppavlov",
+      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
+      "MODELS_PATH": "{ROOT_PATH}/models"
+    },
+    "requirements": [
+      "{DEEPPAVLOV_PATH}/requirements/jsonschema.txt"
+    ]
+  }
+}
