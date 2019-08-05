@@ -116,10 +116,11 @@ class ChitChatBotAdapter(Component):
 
     @overrides
     def __call__(self, input_data, *args, **kwargs):
+        log.info(input_data)
         try:
             validate(instance=input_data, schema=self.schema)
         except Exception as ex:
             res = f"Structure error of input_data\n{ex}"
             log.error(res)
-            return res
-        return "Received data accepted"
+            return [res]
+        return ["Received data accepted"]
