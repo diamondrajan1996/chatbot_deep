@@ -36,7 +36,7 @@
         "id": "embedder",
         "class_name": "fasttext",
         "pad_zero": true,
-        "load_path": "~/Work/Embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin"
+        "load_path": "{DOWNLOADS_PATH}/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin"
       },
       {
         "in": ["tokenized_sentences", "speakers", "doc_key"],
