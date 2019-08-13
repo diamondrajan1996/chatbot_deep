@@ -66,7 +66,7 @@ class PersonaTopicFilePathsIterator(DataLearningIterator):
                             profile=sender_id2user[context[-1]["sender_id"]]["profile"],
                             topic=sender_id2user[context[-1]["sender_id"]]["topics"],
                             context=[msg["text"] for msg in context[:-1]],
-                            next_sentense=context[-1]["text"],
+                            next_sentence=context[-1]["text"],
                         )
                         for context_id, context in enumerate(contexts)
                     ]

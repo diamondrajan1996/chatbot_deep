@@ -18,10 +18,17 @@ import pprint
 import time
 
 import numpy as np
+from bert_dp.tokenization import FullTokenizer
 
+
+from deeppavlov.core.commands.utils import expand_path
 from deeppavlov.core.models.nn_model import NNModel
 from deeppavlov.core.common.registry import register
-from deeppavlov.models.generative_chitchat.preprocessing import InputExample
+from deeppavlov.models.generative_chitchat.preprocessing import (
+    InputExample,
+    convert_examples_to_features,
+    SpecTokenTemplate,
+)
 
 
 logger = getLogger(__name__)
@@ -29,10 +36,12 @@ logger = getLogger(__name__)
 
 @register("test_net")
 class TestNet(NNModel):
-    def __init__(self, batch_size: int, *args, **kwargs) -> None:
+    def __init__(self, vocab_file: str, batch_size: int, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.batch_size = batch_size
+        vocab_file = str(expand_path(vocab_file))
+        self.tokenizer = FullTokenizer(vocab_file=vocab_file, do_lower_case=False)
 
     def load(self, *args, **kwargs) -> None:
         pass
@@ -43,12 +52,50 @@ class TestNet(NNModel):
     def train_on_batch(self, samples_generator, y):
         logger.info("TRAIN_ON_BATCH")
         logger.info(f"samples_generator={pprint.pformat([sample.to_dict() for sample in samples_generator])}")
-        logger.info(f"y={y}")
+        res = convert_examples_to_features(
+            samples_generator,
+            20,
+            self.tokenizer,
+            SpecTokenTemplate(
+                start_segment=[],
+                end_segment=[],
+                start_sentense=[],
+                end_sentense=[],
+                between_sentense=[],
+                # start_segment=["[CLS]"],
+                # end_segment=["[SEP]"],
+                # start_sentense=["[PAD]"],
+                # end_sentense=["[unused1]"],
+                # between_sentense=["[unused2]"],
+            ),
+            profile_segment_idexes_template=[0, 1, 2, 3, 4, 5, 6],
+        )
+        logger.info(f"convert_examples_to_features={res}")
+        # logger.info(f"y={y}")
         time.sleep(5)
         return 1
 
     def __call__(self, samples_generator):
         logger.info("CALLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
         logger.info(f"samples_generator={pprint.pformat([sample.to_dict() for sample in samples_generator])}")
-        time.sleep(5)
+        res = convert_examples_to_features(
+            samples_generator,
+            20,
+            self.tokenizer,
+            SpecTokenTemplate(
+                # start_segment=[],
+                # end_segment=[],
+                # start_sentense=[],
+                # end_sentense=[],
+                # between_sentense=[],
+                start_segment=["[CLS]"],
+                end_segment=["[SEP]"],
+                start_sentense=["[PAD]"],
+                end_sentense=["[unused1]"],
+                between_sentense=["[unused2]"],
+            ),
+            profile_segment_idexes_template=[0, 1, 2, 3, 4, 5, 6],
+        )
+        logger.info(f"convert_examples_to_features={pprint.pformat(res)}")
+        input()
         return [1 for i in samples_generator]

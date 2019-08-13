@@ -15,20 +15,21 @@
       "examples"
     ],
     "in_y": [
-      "next_sentense"
+      "next_sentence"
     ],
     "pipe": [
       {
         "class_name": "test_net",
         "unroll_steps": 20,
         "batch_size": 2,
+        "vocab_file": "{DOWNLOADS_PATH}/bert_models/rubert_cased_L-12_H-768_A-12_v1/vocab.txt",
         "save_path": "{MODELS_PATH}/persona_topic_chitchat_transformer",
         "load_path": "{MODELS_PATH}/persona_topic_chitchat_transformer",
         "in": [
           "examples"
         ],
         "in_y": [
-          "next_sentense"
+          "next_sentence"
         ],
         "out": [
           "loss"
