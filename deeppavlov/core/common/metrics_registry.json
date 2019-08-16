@@ -10,8 +10,10 @@
   "google_bleu": "deeppavlov.metrics.bleu:google_bleu",
   "kbqa_accuracy": "deeppavlov.metrics.accuracy:kbqa_accuracy",
   "log_loss": "deeppavlov.metrics.log_loss:sk_log_loss",
+  "map": "deeppavlov.metrics.mAP:mean_average_precision",
   "ner_f1": "deeppavlov.metrics.fmeasure:ner_f1",
   "ner_token_f1": "deeppavlov.metrics.fmeasure:ner_token_f1",
+  "new_map": "deeppavlov.metrics.new_map:mean_average_precision_score",
   "per_item_accuracy": "deeppavlov.metrics.accuracy:per_item_accuracy",
   "per_item_bleu": "deeppavlov.metrics.bleu:per_item_bleu",
   "per_item_dialog_accuracy": "deeppavlov.metrics.accuracy:per_item_dialog_accuracy",
@@ -29,5 +31,6 @@
   "squad_v1_em": "deeppavlov.metrics.squad_metrics:squad_v1_exact_match",
   "squad_v1_f1": "deeppavlov.metrics.squad_metrics:squad_v1_f1",
   "squad_v2_em": "deeppavlov.metrics.squad_metrics:squad_v2_exact_match",
-  "squad_v2_f1": "deeppavlov.metrics.squad_metrics:squad_v2_f1"
+  "squad_v2_f1": "deeppavlov.metrics.squad_metrics:squad_v2_f1",
+  "submit_metric": "deeppavlov.metrics.mAP:submit_metric"
 }

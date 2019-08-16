@@ -24,6 +24,7 @@ from bert_dp.modeling import BertConfig, BertModel
 from bert_dp.optimization import AdamWeightDecayOptimizer
 from bert_dp.preprocessing import InputFeatures
 
+from .freeze_model import BertModelFreeze
 from deeppavlov.core.commands.utils import expand_path
 from deeppavlov.core.common.registry import register
 from deeppavlov.models.bert.bert_classifier import BertClassifierModel
@@ -94,6 +95,7 @@ class BertRankerModel(BertClassifierModel):
             input_type_ids = [f.input_type_ids for f in features]
 
             feed_dict = self._build_feed_dict(input_ids, input_masks, input_type_ids)
+
             if not self.return_probas:
                 pred = self.sess.run(self.y_predictions, feed_dict=feed_dict)
             else:
