@@ -140,6 +140,10 @@ class EntityLinker(Component, Serializable):
         if self.rule_filter_entities and self._language == 'rus':
             filtered_entities, filtered_entity_triplets = self.filter_triplets_rus(entity_triplets,
                                                                                    question_tokens, srtd_cand_ent)
+        else:
+            filtered_entity_triplets = entity_triplets
+            filtered_entities = srtd_cand_ent
+
         if self.debug:
             self._log_entities(filtered_entities[:10])
 

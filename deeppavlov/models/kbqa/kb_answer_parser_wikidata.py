@@ -60,6 +60,8 @@ class KBAnswerParserWikidata(KBBase):
         objects_batch = []
         confidences_batch = []
 
+        print(tokens_batch, tags_batch)
+
         for tokens, tags, relations_probs in zip(tokens_batch, tags_batch, relations_probs_batch):
             is_kbqa = self.is_kbqa_question(tokens)
             if is_kbqa:
@@ -110,7 +112,7 @@ class KBAnswerParserWikidata(KBBase):
     def extract_entities(tokens: List[str], tags: List[str]) -> str:
         entity = []
         for j, tok in enumerate(tokens):
-            if tags[j] != 'O':
+            if tags[j] != 0:
                 entity.append(tok)
         entity = ' '.join(entity)
 
