@@ -269,8 +269,8 @@
         "subdir": "{DOWNLOADS_PATH}/embeddings"
       },
       {
-        "url": "http://files.deeppavlov.ai/deeppavlov_data/kbqa_mix_lowercase.tar.gz",
-        "subdir": "{MODELS_PATH}/kbqa_mix_lowercase"
+        "url": "http://files.deeppavlov.ai/deeppavlov_data/kbqa_eng.tar.gz",
+        "subdir": "{MODELS_PATH}/kbqa_eng"
       },
       {
         "url": "http://files.deeppavlov.ai/embeddings/glove.6B.100d.txt",
