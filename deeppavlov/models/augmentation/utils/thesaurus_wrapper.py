@@ -95,10 +95,13 @@ class EnThesaurus(object):
                               'ADJ':  wn.ADJ,
                               'ADV':  wn.ADV}
 
-    def _find_synonyms(self, lemma, morpho_tag):
-        wn_synonyms = wn.synsets(lemma, pos=self.to_wn_postags[morpho_tag['pos_tag']])
-        if morpho_tag['pos_tag'] == 'ADJ':
-            wn_synonyms = wn_synonyms.extend(wn.synsets(lemma, pos='s'))
+    def _find_synonyms(self, lemma, morpho_tag=None):
+        if morpho_tag is not None:
+            wn_synonyms = wn.synsets(lemma, pos=self.to_wn_postags[morpho_tag['pos_tag']])
+            if morpho_tag['pos_tag'] == 'ADJ':
+                wn_synonyms = wn_synonyms.extend(wn.synsets(lemma, pos='s'))
+        else:
+            wn_synonyms = wn.synsets(lemma)
         if wn_synonyms is None:
             return []
         lemmas = sum((map(lambda x: x.lemmas(), wn_synonyms)), [])
@@ -114,12 +117,13 @@ class EnThesaurus(object):
             filtered_syn.discard(source_lemma)
         return list(filtered_syn)
 
-    def get_syn(self, lemma: str, morpho_tag) -> List[str]:
+    def get_syn(self, lemma: str, morpho_tag=None) -> List[str]:
         """It returns synonyms for certain word
         Args:
             lemma: word for that it will search synonyms
             morpho_tags: morpho tags in UD2.0 format of filtered tokens
                          e.g. {'source_token': 'luck', 'pos_tag': 'NOUN', 'features' {'Number': 'Sing'}}
+            phrase_filter: flag that says filter
         Return:
              List of synonyms
         """

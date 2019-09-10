@@ -101,7 +101,8 @@ class ThesaurusAug(Component):
                 continue
             elif next_morpho_tag and\
                     cur_morpho_tag['pos_tag'] == 'VERB' and\
-                    next_morpho_tag['pos_tag'] == 'ADP':
+                    next_morpho_tag['pos_tag'] == 'ADP' and\
+                    not(next_morpho_tag['source_token'] in {'to'}):
                 res_tokens.append("_".join((cur_token, next_token)))
                 res_morpho_tags.append(cur_morpho_tag)
                 is_pass_next_token = True
@@ -110,9 +111,8 @@ class ThesaurusAug(Component):
                 res_morpho_tags.append(cur_morpho_tag)
         return res_tokens, res_morpho_tags
 
-    def _disunit_phrasal_verbs(self, synonyms, filter_res):
-        ziped = zip(synonyms, filter_res)
-        [list(map(lambda x: x.replace("_", " "), syns)) if not_filtered else None for syns, not_filtered in ziped]
+    def _disunit_phrasal_verbs(self, candidates):
+        return [list(map(lambda x: x.replace("_", " "), cand)) for cand in candidates]
 
     def _get_cases(self, tokens, filter_res):
         ziped = zip(tokens, filter_res)
@@ -187,7 +187,7 @@ class ThesaurusAug(Component):
     def transform_sentence(self, tokens: List[str], morpho_tags: str) -> List[str]:
         morpho_tags = self._transform_morpho_tags_in_dict(morpho_tags)
         if self.lang == 'eng':
-            self._unite_phrasal_verbs(tokens, morpho_tags)
+            tokens, morpho_tags = self._unite_phrasal_verbs(tokens, morpho_tags)
         filter_res = self.word_filter.filter_words(tokens, morpho_tags)
         cases = self._get_cases(tokens, filter_res)
         lemmas = self._get_lemmas(tokens, morpho_tags, filter_res)
@@ -197,9 +197,9 @@ class ThesaurusAug(Component):
         if self.lang == 'rus':
             synonyms = self._filter_based_on_reflexive_feature(synonyms, tokens, morpho_tags)
         synonyms = self._rest_cases(synonyms, cases, filter_res)
-        if self.lang == 'eng':
-            self._disunit_phrasal_verbs(synonyms, filter_res)
         candidates = self._insert_source_tokens(synonyms, tokens, filter_res)
+        if self.lang == 'eng':
+            candidates = self._disunit_phrasal_verbs(candidates)
         candidates = self._transform_for_kenlm_elector(candidates, filter_res)
         return candidates
 
