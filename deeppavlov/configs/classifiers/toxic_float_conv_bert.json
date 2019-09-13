@@ -1,0 +1,126 @@
+{
+  "dataset_reader": {
+    "class_name": "deeppavlov.dataset_readers.many_columns_dataset_reader:ManyColumnsDatasetReader",
+    "x": "comment_text",
+    "y": [
+        "identity_hate",
+        "insult",
+        "obscene",
+        "severe_toxic",
+        "sexual_explicit",
+        "threat",
+        "toxic"
+      ],
+    "data_path": "{DOWNLOADS_PATH}/toxic_comment_data"
+  },
+  "dataset_iterator": {
+    "class_name": "basic_classification_iterator",
+    "seed": 42,
+    "field_to_split": "train",
+    "split_fields": [
+      "train",
+      "valid",
+      "test"
+    ],
+    "split_proportions": [
+      0.001,
+      0.001,
+      0.998
+    ]
+  },
+  "chainer": {
+    "in": [
+      "x"
+    ],
+    "in_y": [
+      "y"
+    ],
+    "pipe": [
+      {
+        "class_name": "bert_preprocessor",
+        "vocab_file": "{DOWNLOADS_PATH}/bert_models/conversational_cased_L-12_H-768_A-12/vocab.txt",
+        "do_lower_case": false,
+        "max_seq_length": 64,
+        "in": [
+          "x"
+        ],
+        "out": [
+          "bert_features"
+        ]
+      },
+      {
+        "class_name": "deeppavlov.models.bert.bert_float_classifier:BertFloatClassifierModel",
+        "n_classes": 7,
+        "return_probas": true,
+        "one_hot_labels": true,
+        "bert_config_file": "{DOWNLOADS_PATH}/bert_models/conversational_cased_L-12_H-768_A-12/bert_config.json",
+        "pretrained_bert": "{DOWNLOADS_PATH}/bert_models/conversational_cased_L-12_H-768_A-12/bert_model.ckpt",
+        "save_path": "{MODEL_PATH}/model",
+        "load_path": "{MODEL_PATH}/model",
+        "keep_prob": 0.5,
+        "learning_rate": 1e-05,
+        "learning_rate_drop_patience": 5,
+        "learning_rate_drop_div": 2.0,
+        "multilabel": true,
+        "in": [
+          "bert_features"
+        ],
+        "in_y": [
+          "y"
+        ],
+        "out": [
+          "y_pred_probas"
+        ]
+      }
+    ],
+    "out": [
+      "y_pred_probas"
+    ]
+  },
+  "train": {
+    "epochs": 100,
+    "batch_size": 256,
+    "metrics": [
+      {
+        "name": "sigmoid_crossentropy_loss",
+        "inputs": [
+          "y",
+          "y_pred_probas"
+        ]
+      }
+    ],
+    "metric_optimization": "minimize",
+    "validation_patience": 5,
+    "val_every_n_epochs": 1,
+    "log_every_n_epochs": 1,
+    "show_examples": false,
+    "evaluation_targets": [
+      "train",
+      "valid"
+    ],
+    "class_name": "nn_trainer"
+  },
+  "metadata": {
+    "imports": ["deeppavlov.metrics.sigmoid_crossentropy_loss"],
+    "variables": {
+      "ROOT_PATH": "~/.deeppavlov",
+      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
+      "MODELS_PATH": "{ROOT_PATH}/models",
+      "MODEL_PATH": "{MODELS_PATH}/classifiers/toxic_float_conv_bert_v0"
+    },
+    "requirements": [
+      "{DEEPPAVLOV_PATH}/requirements/tf.txt",
+      "{DEEPPAVLOV_PATH}/requirements/bert_dp.txt"
+    ],
+    "labels": {
+      "telegram_utils": "IntentModel",
+      "server_utils": "KerasIntentModel"
+    },
+    "download": [
+      {
+        "url": "http://files.deeppavlov.ai/deeppavlov_data/bert/conversational_cased_L-12_H-768_A-12.tar.gz",
+        "subdir": "{DOWNLOADS_PATH}/bert_models"
+      }
+    ]
+  }
+}
