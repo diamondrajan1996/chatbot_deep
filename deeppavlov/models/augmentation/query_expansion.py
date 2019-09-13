@@ -41,7 +41,9 @@ class QueryExpander(ThesaurusAug):
                                                         return_inflected or return_lemmas should be true"""
         res = set()
         morpho_tags = self._transform_morpho_tags_in_dict(morpho_tags)
-        filter_res = self.word_filter.filter_words(tokens, morpho_tags)
+        not_replaced_filter_res = self.word_filter.filter_not_replaced_token(tokens, morpho_tags)
+        isalpha_filter_res = self.word_filter.filter_isalpha_only(tokens)
+        filter_res = [all(i) for i in zip(isalpha_filter_res, not_replaced_filter_res)]
         lemmas = self._get_lemmas(tokens, morpho_tags, filter_res)
         lemma_synonyms = self._get_synonyms(lemmas, morpho_tags, filter_res)
         if return_inflected:
