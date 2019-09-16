@@ -122,6 +122,10 @@
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/bert/conversational_cased_L-12_H-768_A-12.tar.gz",
         "subdir": "{DOWNLOADS_PATH}/bert_models"
+      },
+      {
+        "url": "http://files.deeppavlov.ai/deeppavlov_data/classifiers/toxic_float_conv_bert_v0.tar.gz",
+        "subdir": "{MODELS_PATH}/classifiers"
       }
     ]
   }
