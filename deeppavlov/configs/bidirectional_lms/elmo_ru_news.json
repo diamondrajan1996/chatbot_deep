@@ -6,11 +6,11 @@
     "pipe": [
       {
         "in": ["sentences"],
-        "name": "lazy_tokenizer",
+        "class_name": "lazy_tokenizer",
         "out": ["tokens"]
       },
       {
-        "name": "elmo_bilm",
+        "class_name": "elmo_bilm",
         "mini_batch_size": 32,
         "in": [
           "tokens"
