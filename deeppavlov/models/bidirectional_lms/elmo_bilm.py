@@ -20,9 +20,10 @@ import json
 import numpy as np
 import tensorflow as tf
 from overrides import overrides
+import logging
 
 from deeppavlov.core.commands.utils import expand_path
-from deeppavlov.core.common.log import get_logger
+# from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.utils import zero_pad
 from deeppavlov.core.models.component import Component
@@ -31,7 +32,7 @@ from deeppavlov.core.models.tf_backend import TfModelMeta
 from deeppavlov.models.bidirectional_lms.elmo.utils import load_model, load_options_latest_checkpoint
 from deeppavlov.models.bidirectional_lms.elmo.data import InferBatcher
 
-log = get_logger(__name__)
+log = logging.getLogger(__name__)
 
 @register('elmo_bilm')
 class ELMoEmbedder(Component, metaclass=TfModelMeta):
@@ -131,8 +132,11 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
         for batch_no, (time_sliced_batch, time_sliced_batch_reverse) in enumerate(zip (batch,batch_reverse)):
 
             #batch padding
-            complete_batch = np.pad(time_sliced_batch, ((0,pad_size),(0,0),(0,0)), 'constant',constant_values=260)
-            complete_batch_reverse = np.pad(time_sliced_batch_reverse, ((0,pad_size),(0,0),(0,0)), 'constant',constant_values=260)
+            complete_batch = np.pad(time_sliced_batch, ((0,pad_size),(0,0),(0,0)), 
+                                    'constant', constant_values=260)
+            complete_batch_reverse = np.pad(time_sliced_batch_reverse, 
+                                            ((0,pad_size),(0,0),(0,0)), 
+                                            'constant',constant_values=260)
 
             feed_dict = {t: v for t, v in zip(init_state_tensors, init_state_values)}
             feed_dict[self.model.tokens_characters] = complete_batch
@@ -157,7 +161,8 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
 
         # remove pads of time and reverse a reverse
         output_batch = [batch_line[:tok_len] for batch_line, tok_len in zip(output_batch, tokens_length)]
-        output_batch_reverse = [np.flip(batch_line[:tok_len],axis=0) for batch_line, tok_len in zip(output_batch_reverse, tokens_length)]
+        output_batch_reverse = [np.flip(batch_line[:tok_len],axis=0) 
+                                for batch_line, tok_len in zip(output_batch_reverse, tokens_length)]
         
         output_full_batch = []
         for batch_line, batch_line_reverse, tok_len in zip(output_batch, output_batch_reverse, tokens_length):
@@ -193,13 +198,13 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
             output_batch = []
             for mini_batch in batch_gen:
                 mini_batch_out, init_state_values = self._mini_batch_fit(mini_batch, 
-                                                                            init_state_tensors, init_state_values, 
-                                                                            final_state_tensors, *args, **kwargs)
+                                                                         init_state_tensors, init_state_values, 
+                                                                         final_state_tensors, *args, **kwargs)
                 output_batch.extend(mini_batch_out)
         else:
             output_batch, init_state_values = self._mini_batch_fit(batch, 
-                                                                            init_state_tensors, init_state_values, 
-                                                                            final_state_tensors, *args, **kwargs)
+                                                                   init_state_tensors, init_state_values, 
+                                                                   final_state_tensors, *args, **kwargs)
         
         self.init_states = (init_state_tensors, init_state_values, final_state_tensors)
         return output_batch
