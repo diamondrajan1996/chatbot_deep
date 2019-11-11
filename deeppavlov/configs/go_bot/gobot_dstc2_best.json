@@ -7,7 +7,7 @@
     "class_name": "dialog_iterator"
   },
   "chainer": {
-    "in": ["x"],
+    "in": ["x", "user_ids"],
     "in_y": ["y"],
     "out": ["y_predicted"],
     "pipe": [
@@ -35,7 +35,7 @@
         "class_name": "go_bot",
         "load_path": "{MODELS_PATH}/gobot_dstc2_best/model",
         "save_path": "{MODELS_PATH}/gobot_dstc2_best/model",
-        "in": ["x"],
+        "in": ["x", "user_ids"],
         "in_y": ["y"],
         "out": ["y_predicted"],
         "main": true,
