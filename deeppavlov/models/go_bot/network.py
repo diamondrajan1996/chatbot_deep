@@ -494,6 +494,8 @@ class GoalOrientedBot(LRScheduledTFModel):
             if not user_ids:
                 user_ids = ['finn' for i in range(len(batch))]
             for user_id, x in zip(user_ids, batch):
+                if user_id not in self.states:
+                    self.reset(user_id)
                 state = self.states[user_id]
                 state['current_db_result'] = None
 
