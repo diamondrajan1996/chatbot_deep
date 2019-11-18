@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from logging import getLogger
-from typing import List, Any, Tuple, Union, Dict
+from typing import List, Any, Tuple, Union, Dict, Optional
 
 import numpy as np
 import tensorflow as tf
@@ -168,6 +168,7 @@ class BertSequenceNetwork(LRScheduledTFModel):
         keep_prob: dropout keep_prob for non-Bert layers
         bert_config_file: path to Bert configuration file
         pretrained_bert: pretrained Bert checkpoint
+        excluded_scopes: task-specific Variable scores which are excluded when loading the network
         attention_probs_keep_prob: keep_prob for Bert self-attention layers
         hidden_keep_prob: keep_prob for Bert hidden layers
         encoder_layer_ids: list of averaged layers from Bert encoder (layer ids)
@@ -180,7 +181,7 @@ class BertSequenceNetwork(LRScheduledTFModel):
         ema_decay: what exponential moving averaging to use for network parameters, value from 0.0 to 1.0.
             Values closer to 1.0 put weight on the parameters history and values closer to 0.0 corresponds put weight
             on the current parameters.
-        ema_variables_on_cpu: whether to put EMA variables to CPU. It may save a lot of GPU memory
+        ema_variables_on_cpu: whether to put EMA variables to CPU. It may save a lot of GPU memory.
         freeze_embeddings: set True to not train input embeddings set True to
             not train input embeddings set True to not train input embeddings
         learning_rate: learning rate of BERT head
@@ -197,6 +198,8 @@ class BertSequenceNetwork(LRScheduledTFModel):
                  keep_prob: float,
                  bert_config_file: str,
                  pretrained_bert: str = None,
+                 excluded_scopes: Optional[List[str]] = None,
+                 learnable_scopes: Optional[List[str]] = None,
                  attention_probs_keep_prob: float = None,
                  hidden_keep_prob: float = None,
                  encoder_layer_ids: List[int] = (-1,),
@@ -220,6 +223,7 @@ class BertSequenceNetwork(LRScheduledTFModel):
                          load_before_drop=load_before_drop,
                          clip_norm=clip_norm,
                          **kwargs)
+        self.learnable_scopes = None or []
         self.keep_prob = keep_prob
         self.encoder_layer_ids = encoder_layer_ids
         self.encoder_dropout = encoder_dropout
@@ -255,8 +259,9 @@ class BertSequenceNetwork(LRScheduledTFModel):
                     and not tf.train.checkpoint_exists(str(self.load_path.resolve())):
                 log.info('[initializing model with Bert from {}]'.format(pretrained_bert))
                 # Exclude optimizer and classification variables from saved variables
-                var_list = self._get_saveable_variables(
-                    exclude_scopes=('Optimizer', 'learning_rate', 'momentum', 'ner', 'EMA'))
+                excluded_scopes = excluded_scopes or []
+                excluded_scopes += ['Optimizer', 'learning_rate', 'momentum', 'ner', 'EMA']
+                var_list = self._get_saveable_variables(exclude_scopes=tuple(excluded_scopes))
                 saver = tf.train.Saver(var_list)
                 saver.restore(self.sess, pretrained_bert)
 
@@ -267,8 +272,6 @@ class BertSequenceNetwork(LRScheduledTFModel):
             self.sess.run(self.ema.init_op)
 
     def _init_graph(self) -> None:
-        # self._init_placeholders()
-
         self.seq_lengths = tf.reduce_sum(self.y_masks_ph, axis=1)
 
         self.bert = BertModel(config=self.bert_config,
@@ -294,13 +297,20 @@ class BertSequenceNetwork(LRScheduledTFModel):
             units = tf.nn.dropout(units, keep_prob=self.keep_prob_ph)
         return units
 
-    def _get_tag_mask(self):
+    def _get_tag_mask(self) -> tf.Tensor:
+        """
+        Returns: tag_mask,
+            a mask that selects positions corresponding to word tokens (not padding and `CLS`)
+        """
         max_length = tf.reduce_max(self.seq_lengths)
         one_hot_max_len = tf.one_hot(self.seq_lengths - 1, max_length)
         tag_mask = tf.cumsum(one_hot_max_len[:, ::-1], axis=1)[:, ::-1]
         return tag_mask
 
     def encoder_layers(self):
+        """
+        Returns: the output of BERT layers specfied in ``self.encoder_layers_ids``
+        """
         return [self.bert.all_encoder_layers[i] for i in self.encoder_layer_ids]
 
     def _init_placeholders(self) -> None:
@@ -377,15 +387,17 @@ class BertSequenceNetwork(LRScheduledTFModel):
                                              bert_learning_rate,
                                              **kwargs)
         # train_op for ner head variables
-        kwargs['learnable_scopes'] = ('ner',)
+        kwargs['learnable_scopes'] = ('ner',) + tuple(self.learnable_scopes)
         head_train_op = super().get_train_op(loss,
                                              learning_rate,
                                              **kwargs)
         return tf.group(bert_train_op, head_train_op)
 
-    def _build_basic_feed_dict(self, input_ids, input_masks, token_types=None, train=False):
-        """
-        You need to update this dict by the values for output placeholders in your derived class.
+    def _build_basic_feed_dict(self, input_ids: tf.Tensor, input_masks: tf.Tensor,
+                               token_types: Optional[tf.Tensor]=None, train: bool=False) -> dict:
+        """Fills the feed_dict with the tensors defined in the basic class.
+        You need to update this dict by the values of output placeholders
+        and class-specific network inputs in your derived class.
         """
         feed_dict = {
             self.input_ids_ph: input_ids,
@@ -416,9 +428,11 @@ class BertSequenceNetwork(LRScheduledTFModel):
             input_ids: batch of indices of subwords
             input_masks: batch of masks which determine what should be attended
             args: arguments passed  to _build_feed_dict
-                and corresponding to output tensors of the derived class.
+                and corresponding to additional input
+                and output tensors of the derived class.
             kwargs: keyword arguments passed to _build_feed_dict
-                and corresponding to output tensors of the derived class.
+                and corresponding to additional input
+                and output tensors of the derived class.
 
         Returns:
             dict with fields 'loss', 'head_learning_rate', and 'bert_learning_rate'
@@ -428,7 +442,7 @@ class BertSequenceNetwork(LRScheduledTFModel):
         if self.ema:
             self.sess.run(self.ema.switch_to_train_op)
         _, loss, lr = self.sess.run([self.train_op, self.loss, self.learning_rate_ph],
-                                    feed_dict=feed_dict)
+                                     feed_dict=feed_dict)
         return {'loss': loss,
                 'head_learning_rate': float(lr),
                 'bert_learning_rate': float(lr) * self.bert_learning_rate_multiplier}
@@ -437,17 +451,6 @@ class BertSequenceNetwork(LRScheduledTFModel):
                  input_ids: Union[List[List[int]], np.ndarray],
                  input_masks: Union[List[List[int]], np.ndarray],
                  **kwargs) -> Union[List[List[int]], List[np.ndarray]]:
-        """ Predicts tag indices for a given subword tokens batch
-
-        Args:
-            input_ids: indices of the subwords
-            input_masks: mask that determines where to attend and where not to
-            y_masks: mask which determines the first subword units in the the word
-
-        Returns:
-            Predictions indices or predicted probabilities fro each token (not subtoken)
-
-        """
         raise NotImplementedError("You must implement method __call__ in your derived class.")
 
     def save(self, exclude_scopes=('Optimizer', 'EMA/BackupVariables')) -> None:
@@ -468,7 +471,8 @@ class BertSequenceNetwork(LRScheduledTFModel):
 class BertSequenceTagger(BertSequenceNetwork):
     """BERT-based model for text tagging.
 
-    For each token a tag is predicted. Can be used for any tagging.
+    Predicts a tag for each input token.
+    It can be used for any tagging task (e.g. morphological tagging or NER).
 
     Args:
         n_tags: number of distinct tags
@@ -639,7 +643,7 @@ class BertSequenceTagger(BertSequenceNetwork):
             y_masks: mask which determines the first subword units in the the word
 
         Returns:
-            Predictions indices or predicted probabilities fro each token (not subtoken)
+            Label indices or class probabilities for each token (not subtoken)
 
         """
         feed_dict = self._build_feed_dict(input_ids, input_masks, y_masks)
