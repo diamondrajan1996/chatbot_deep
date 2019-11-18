@@ -71,24 +71,31 @@ class VerbSelector:
 
 class GappingSourceTransformer:
 
-    def __init__(self, only_first=True, only_starts=True):
+    def __init__(self, only_first=True, only_starts=True, return_indexes=True):
         self.only_first = only_first
         self.only_starts = only_starts
+        self.return_indexes = return_indexes
 
     def __call__(self, sents, gap_data, verb_indexes):
         L = max(len(x) for x in sents)
         if not self.only_first or not self.only_starts:
             raise NotImplementedError("Not implemented yet.")
         answer = [np.zeros(shape=(len(elem), L), dtype=int) for elem in verb_indexes]
+        index_answer = []
         for i, sent_verbs in enumerate(verb_indexes):
             verb_indexes = {verb: index for index, verb in enumerate(sent_verbs)}
             curr_gap_verb_data, curr_gap_data = gap_data[i][:2]
             if len(curr_gap_verb_data) == 0:
+                index_answer.append(([], []))
                 continue
             gap_verb = curr_gap_verb_data[0][0]
             gap_verb_index = verb_indexes.get(gap_verb)
             if gap_verb_index is None:
+                index_answer.append(([], []))
                 continue
             for curr_gap, _ in curr_gap_data:
                 answer[i][gap_verb_index, curr_gap] = 1
+            index_answer.append(([gap_verb], [elem[0] for elem in curr_gap_data]))
+        if self.return_indexes:
+            return answer, index_answer
         return answer

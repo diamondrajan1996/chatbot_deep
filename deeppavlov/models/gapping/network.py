@@ -26,7 +26,7 @@ from deeppavlov.core.commands.utils import expand_path
 from deeppavlov.core.common.registry import register
 from deeppavlov.models.bert.bert_sequence_tagger import BertSequenceNetwork, token_from_subtoken,\
     ExponentialMovingAverage
-from deeppavlov.models.syntax_parser.network import gather_indexes
+from deeppavlov.models.syntax_parser.network import gather_indexes, biaffine_attention
 from deeppavlov.core.data.utils import zero_pad
 from deeppavlov.core.models.component import Component
 from deeppavlov.core.layers.tf_layers import bi_rnn
@@ -47,7 +47,8 @@ class GappingLoss:
             word_mask = kb.ones_like(y_true, dtype="float")
         first_log = -kb.log(kb.clip(y_pred, kb.epsilon(), 1.0 - kb.epsilon()))
         second_log = -kb.log(kb.clip(1.0 - y_pred, kb.epsilon(), 1.0 - kb.epsilon()))
-        true_log = kb.max(y_true * first_log, axis=-1)
+        # true_log = kb.max(y_true * first_log, axis=-1)
+        y_true = kb.cast(y_true, dtype="float")
         first_loss = y_true * first_log * word_mask
         second_loss = (1.0 - y_true) * second_log * word_mask
         loss = self.positive_weight * kb.max(first_loss, axis=-1) + kb.max(second_loss, axis=-1)
@@ -55,7 +56,7 @@ class GappingLoss:
         #     # p_wrong <= p_true => first_log_wrong >= first_log_true => diff_log = 0.0
         #     diff_log = kb.minimum(first_log - kb.expand_dims(true_log), 0.0)
         #     loss -= self.positive_weight * kb.min(diff_log, axis=-1)
-        return loss
+        return loss, first_loss, second_loss
 
 @register('bert_gapping_recognizer')
 class BertGappingRecognizer(BertSequenceNetwork):
@@ -126,7 +127,7 @@ class BertGappingRecognizer(BertSequenceNetwork):
 
         units = super()._init_graph()
 
-        with tf.variable_scope('gapping'):
+        with tf.variable_scope('ner'):
             units = token_from_subtoken(units, self.y_masks_ph)
             if self.use_birnn:
                 units, _ = bi_rnn(units,
@@ -135,20 +136,24 @@ class BertGappingRecognizer(BertSequenceNetwork):
                                   seq_lengths=self.seq_lengths,
                                   name='birnn')
                 units = tf.concat(units, -1)
-            units = tf.gather_nd(units, self.sent_index_ph)
+            units = tf.gather(units, self.sent_index_ph)
             # for verbs
-            verb_states = gather_indexes(units, self.verb_ph)
+            verb_states = gather_indexes(units, self.sent_verb_ph)
             # verb_states.shape = C * V * h
-            verb_states = tf.layers.dense(verb_states, units=self.state_size, activation="relu")
+            verb_states = tf.layers.dense(verb_states, units=self.state_size)
             # gap_states.shape = C * L * h
-            gap_states = tf.layers.dense(units, units=self.state_size, activation="relu")
+            gap_states = tf.layers.dense(units, units=self.state_size)
             # similarities.shape = C * V * L
-            similarities = tf.keras.backend.batch_dot(verb_states, gap_states, axes=[1,1])
+            # similarities = tf.keras.backend.batch_dot(verb_states, gap_states, axes=[1,2])
+            similarities = biaffine_attention(kb.expand_dims(verb_states, axis=1), gap_states)[:,0]
             self.gap_probs = tf.nn.sigmoid(similarities)
         with tf.variable_scope("loss"):
             word_mask = tf.cast(self._get_tag_mask(), tf.float32) # B * L
-            word_mask = tf.gather_nd(word_mask, self.sent_index_ph) # C * L
-            self.loss = self.loss_func(self.y_ph, self.gap_probs, word_mask)
+            word_mask = tf.gather(word_mask, self.sent_index_ph) # C * L
+            loss_tensor, first_loss_tensor, second_loss_tensor = self.loss_func(self.y_ph, self.gap_probs, word_mask)
+            self.first_loss_tensor = first_loss_tensor
+            self.second_loss_tensor = second_loss_tensor
+            self.loss = tf.reduce_mean(loss_tensor)
 
     def _init_placeholders(self) -> None:
         super()._init_placeholders()
@@ -161,7 +166,8 @@ class BertGappingRecognizer(BertSequenceNetwork):
 
     def _build_feed_dict(self, input_ids, input_masks, y_masks, y_indexes, y=None):
         total_indexes_length = sum(len(x) for x in y_indexes)
-        verb_indexes, sent_indexes = [0] * total_indexes_length, [0] * total_indexes_length
+        verb_indexes = np.zeros(shape=(total_indexes_length,), dtype=int)
+        sent_indexes = np.zeros(shape=(total_indexes_length,), dtype=int)
         start = 0
         for i, curr_indexes in enumerate(y_indexes):
             end = start + len(curr_indexes)
@@ -169,12 +175,12 @@ class BertGappingRecognizer(BertSequenceNetwork):
             sent_indexes[start:end] = i
             start = end
         feed_dict = self._build_basic_feed_dict(input_ids, input_masks, train=(y is not None))
-        feed_dict[self.y_masks_ph] = y_masks
+        feed_dict.update({self.sent_index_ph: sent_indexes,
+                          self.sent_verb_ph: verb_indexes,
+                          self.y_masks_ph: y_masks})
         if y is not None:
             y_all = np.concatenate(y, axis=0)
-            feed_dict.update({self.sent_index_ph: sent_indexes,
-                              self.sent_verb_ph: verb_indexes,
-                              self.y_ph: y_all})
+            feed_dict.update({self.y_ph: y_all})
         return feed_dict
 
     def __call__(self,
@@ -210,22 +216,25 @@ class BertGappingRecognizer(BertSequenceNetwork):
         verb_answer, gap_answer = [None] * len(sent_verb_gap_probs), [None] * len(sent_verb_gap_probs)
         probs_answer = []
         for i, curr_verb_gap_probs in enumerate(sent_verb_gap_probs):
-            best_verb_index = np.argmax(np.max(curr_verb_gap_probs, axis=1))
-            best_verb_position = y_verb_indexes[i][best_verb_index]
-            curr_best_probs = curr_verb_gap_probs[best_verb_index, :seq_lengths[i]]
-            is_gap = (curr_best_probs >= self.threshold)
-            is_gap[:best_verb_position+1] = False
-            curr_gap_positions = np.where(is_gap)
-            gap_answer[i] = curr_gap_positions
-            if len(curr_gap_positions) > 0:
-                verb_answer[i] = best_verb_position
-            probs_answer.append(curr_best_probs)
+            if len(curr_verb_gap_probs) > 0:
+                best_verb_index = np.argmax(np.max(curr_verb_gap_probs, axis=1))
+                best_verb_position = y_verb_indexes[i][best_verb_index]
+                curr_best_probs = curr_verb_gap_probs[best_verb_index, :seq_lengths[i]]
+                is_gap = (curr_best_probs >= self.threshold)
+                is_gap[:best_verb_position+1] = False
+                curr_gap_positions = list(np.where(is_gap)[0])
+                gap_answer[i] = curr_gap_positions
+                if len(curr_gap_positions) > 0:
+                    verb_answer[i] = best_verb_position
+                probs_answer.append(curr_best_probs)
+            else:
+                probs_answer.append(np.array([0.0] * seq_lengths[i]))
         if self.return_probas:
             return probs_answer
         else:
             answer = []
             for i, (curr_verb, curr_gaps) in enumerate(zip(verb_answer, gap_answer)):
-                if verb_answer is None:
+                if curr_verb is None:
                     answer.append([[], []])
                 else:
                     answer.append([[curr_verb], curr_gaps])

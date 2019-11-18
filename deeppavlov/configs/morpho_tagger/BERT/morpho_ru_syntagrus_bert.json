@@ -141,7 +141,7 @@
       "ROOT_PATH": "~/.deeppavlov",
       "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
       "MODELS_PATH": "{ROOT_PATH}/models",
-      "BERT_PATH": "/home/sorokin/data/embeddings/BERT/rubert_cased_v1",
+      "BERT_PATH": "/home/alexeysorokin/data/SberChallenge/data/my_models/rubert_cased_v1/",
       "WORK_PATH": "{MODELS_PATH}/morpho_ru_syntagrus"
     },
     "requirements": [
