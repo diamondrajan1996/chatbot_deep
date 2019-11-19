@@ -96,12 +96,13 @@
   "pymorphy_vectorizer": "deeppavlov.models.vectorizers.word_vectorizer:PymorphyVectorizer",
   "qqp_reader": "deeppavlov.dataset_readers.quora_question_pairs_reader:QuoraQuestionPairsReader",
   "random_emb_mat": "deeppavlov.models.preprocessors.random_embeddings_matrix:RandomEmbeddingsMatrix",
+  "rasa_skill": "deeppavlov.skills.rasa_skill.rasa_skill:RASASkill",
+  "reasoning_submit": "deeppavlov.models.ranking.reasoning_submit:ReasoningSubmit",
   "response_base_loader": "deeppavlov.models.preprocessors.response_base_loader:ResponseBaseLoader",
   "ru_obscenity_classifier": "deeppavlov.models.classifiers.ru_obscenity_classifier:RuObscenityClassifier",
   "ru_sent_tokenizer": "deeppavlov.models.tokenizers.ru_sent_tokenizer:RuSentTokenizer",
   "ru_tokenizer": "deeppavlov.models.tokenizers.ru_tokenizer:RussianTokenizer",
   "russian_words_vocab": "deeppavlov.vocabs.typos:RussianWordsVocab",
-  "rasa_skill": "deeppavlov.skills.rasa_skill.rasa_skill:RASASkill",
   "sanitizer": "deeppavlov.models.preprocessors.sanitizer:Sanitizer",
   "seq2seq_go_bot": "deeppavlov.models.seq2seq_go_bot.bot:Seq2SeqGoalOrientedBot",
   "seq2seq_go_bot_nn": "deeppavlov.models.seq2seq_go_bot.network:Seq2SeqGoalOrientedBotNetwork",
@@ -154,5 +155,6 @@
   "ubuntu_v2_mt_reader": "deeppavlov.dataset_readers.ubuntu_v2_mt_reader:UbuntuV2MTReader",
   "ubuntu_v2_reader": "deeppavlov.dataset_readers.ubuntu_v2_reader:UbuntuV2Reader",
   "wiki_sqlite_vocab": "deeppavlov.vocabs.wiki_sqlite:WikiSQLiteVocab",
-  "wikitionary_100K_vocab": "deeppavlov.vocabs.typos:Wiki100KDictionary"
+  "wikitionary_100K_vocab": "deeppavlov.vocabs.typos:Wiki100KDictionary",
+  "world_tree_reader": "deeppavlov.dataset_readers.world_tree_reader:WorldTreeReader"
 }
