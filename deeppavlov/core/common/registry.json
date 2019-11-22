@@ -56,7 +56,7 @@
   "file_paths_iterator": "deeppavlov.dataset_iterators.file_paths_iterator:FilePathsIterator",
   "file_paths_reader": "deeppavlov.dataset_readers.file_paths_reader:FilePathsReader",
   "fit_trainer": "deeppavlov.core.trainers.fit_trainer:FitTrainer",
-  "gapping_dataset_reader": "deeppavlov.models.gapping.utils:GappingDatasetReader",
+  "gapping_dataset_reader": "deeppavlov.dataset_readers.gapping_dataset_reader:GappingDatasetReader",
   "gapping_source_preprocessor": "deeppavlov.models.gapping.utils:GappingSourcePreprocessor",
   "glove": "deeppavlov.models.embedders.glove_embedder:GloVeEmbedder",
   "go_bot": "deeppavlov.models.go_bot.network:GoalOrientedBot",

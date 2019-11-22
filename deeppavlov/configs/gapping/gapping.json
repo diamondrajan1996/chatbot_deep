@@ -40,6 +40,7 @@
           "x_words"
         ],
         "class_name": "verb_selector",
+        "config_file": "configs/morpho_tagger/BERT/morpho_ru_syntagrus_bert.json",
         "out": [
           "x_verbs"
         ]
@@ -48,7 +49,7 @@
         "in": [
           "x_words", "y_word_data", "x_verbs"
         ],
-        "class_name": "gapping_source_preprocesor",
+        "class_name": "gapping_source_preprocessor",
         "out": [
           "y_verb_gap_matrix", "y_verb_gap_indexes"
         ]
@@ -70,25 +71,7 @@
         "out": ["x_subword_mask"]
       },
       {
-        "id": "tag_vocab",
-        "class_name": "simple_vocab",
-        "min_freq": 3,
-        "fit_on": [
-          "y"
-        ],
-        "in": ["y"],
-        "out": ["y_ind"],
-        "special_tokens": [
-          "PAD",
-          "BEGIN",
-          "END"
-        ],
-        "pad_with_zeros": true,
-        "save_path": "{WORK_PATH}/tag.dict",
-        "load_path": "{WORK_PATH}/tag.dict"
-      },
-      {
-        "class_name": "bert_gapping_recoginizer",
+        "class_name": "bert_gapping_recognizer",
         "keep_prob": 0.1,
         "bert_config_file": "{BERT_PATH}/bert_config.json",
         "pretrained_bert": "{BERT_PATH}/bert_model.ckpt",
@@ -122,7 +105,7 @@
         "name": "gapping_position_f1",
         "alias": "position f1",
         "inputs": [
-          "y_verb_gap_matrix",
+          "y_verb_gap_indexes",
           "y_verb_gap_matrix_predicted"
         ]
       },
@@ -130,14 +113,14 @@
         "name": "gapping_sentence_f1",
         "alias": "sentence f1",
         "inputs": [
-          "y_verb_gap_matrix",
+          "y_verb_gap_indexes",
           "y_verb_gap_matrix_predicted"
         ]
       }
     ],
     "validation_patience": 10,
     "val_every_n_epochs": 1,
-    "val_every_n_batches": 100,
+    "val_every_n_batches": 20,
 
     "tensorboard_log_dir": "{WORK_PATH}/logs",
     "show_examples": false,

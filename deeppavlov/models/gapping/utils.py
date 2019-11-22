@@ -4,6 +4,7 @@ import numpy as np
 
 from deeppavlov.core.common.registry import register
 from deeppavlov import build_model
+from deeppavlov.core.models.component import Component
 from deeppavlov.core.commands.utils import parse_config
 from deeppavlov.models.morpho_tagger.common import make_pos_and_tag
 
@@ -34,9 +35,9 @@ def _make_token_starts(text, words):
 
 
 @register("char_to_word_indexer")
-class CharToWordIndexer:
+class CharToWordIndexer(Component):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         pass
 
     def __call__(self, texts, tokens, indexes):
@@ -57,10 +58,10 @@ def is_verb(tag, word=None):
 
 
 @register("verb_selector")
-class VerbSelector:
+class VerbSelector(Component):
 
-    def __init__(self, config_path):
-        config = parse_config(config_path)
+    def __init__(self, config_file, *args, **kwargs):
+        config = parse_config(config_file)
         config["chainer"]["pipe"].pop()
         config["chainer"]["out"] = ["y_predicted"]
         self.model = build_model(config)
@@ -76,9 +77,10 @@ class VerbSelector:
 
 
 @register("gapping_source_preprocessor")
-class GappingSourcePreprocessor:
+class GappingSourcePreprocessor(Component):
 
-    def __init__(self, only_first=True, only_starts=True, return_indexes=True):
+    def __init__(self, only_first=True, only_starts=True,
+                 return_indexes=True, *args, **kwargs):
         self.only_first = only_first
         self.only_starts = only_starts
         self.return_indexes = return_indexes

@@ -75,7 +75,7 @@ class BertGappingRecognizer(BertSequenceNetwork):
                  state_size: int = 256,
                  use_infersent_similarity_layer: bool = False,
                  threshold: float = 0.5,
-                 use_birnn: bool = False,
+                 use_birnn: bool = True,
                  birnn_cell_type: str = 'lstm',
                  birnn_hidden_size: int = 256,
                  ema_decay: float = None,
