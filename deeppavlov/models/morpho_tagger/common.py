@@ -1,14 +1,25 @@
+# Copyright 2017 Neural Networks and Deep Learning lab, MIPT
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 from pathlib import Path
-from typing import List, Dict, Union, Optional
+from typing import List, Union, Optional
 
 from deeppavlov.core.commands.infer import build_model
 from deeppavlov.core.commands.utils import expand_path, parse_config
-from deeppavlov.core.common.params import from_params
-from deeppavlov.core.common.registry import get_model
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.component import Component
-from deeppavlov.dataset_iterators.morphotagger_iterator import MorphoTaggerDatasetIterator
 from deeppavlov.dataset_readers.morphotagging_dataset_reader import read_infile
 from deeppavlov.models.morpho_tagger.common_tagger import make_pos_and_tag
 
@@ -99,7 +110,7 @@ class TagOutputPrettifier(Component):
 
     def _make_format_string(self) -> None:
         if self.format_mode == "basic":
-            self.format_string =  "{}\t{}\t{}\t{}"
+            self.format_string = "{}\t{}\t{}\t{}"
         elif self.format_mode.lower() in ["conllu", "ud"]:
             self.format_string = "{}\t{}\t_\t{}\t_\t{}\t_\t_\t_\t_"
         else:
@@ -107,7 +118,7 @@ class TagOutputPrettifier(Component):
                              "it must be 'basic', 'conllu' or 'ud'.".format(self.mode))
 
     def __call__(self, X: List[List[str]], Y: List[List[str]]) -> List[Union[List[str], str]]:
-        """Calls the ``prettify`` function for each input sentence.
+        """Calls the :meth:`~prettify` function for each input sentence.
 
         Args:
             X: a list of input sentences
@@ -167,7 +178,7 @@ class LemmatizedOutputPrettifier(Component):
             in `conllu` or `ud` mode it contains 10 columns:
             id, word, lemma, pos, xpos, feats, head, deprel, deps, misc
             (see http://universaldependencies.org/format.html for details)
-            Only id, word, tag and pos values are a in current version,
+            Only id, word, lemma, tag and pos columns are predicted in current version,
             other columns are filled by `_` value.
         return_string: whether to return a list of strings or a single string
         begin: a string to append in the beginning
@@ -184,7 +195,7 @@ class LemmatizedOutputPrettifier(Component):
         self.format_string = "{0}\t{1}\t{4}\t{2}\t_\t{3}\t_\t_\t_\t_"
 
     def __call__(self, X: List[List[str]], Y: List[List[str]], Z: List[List[str]]) -> List[Union[List[str], str]]:
-        """Calls the ``prettify`` function for each input sentence.
+        """Calls the :meth:`~prettify` function for each input sentence.
 
         Args:
             X: a list of input sentences
@@ -251,7 +262,7 @@ class DependencyOutputPrettifier(Component):
         self.format_string = "{}\t{}\t_\t_\t_\t_\t{}\t{}\t_\t_"
 
     def __call__(self, X: List[List[str]], Y: List[List[int]], Z: List[List[str]]) -> List[Union[List[str], str]]:
-        """Calls the ``prettify`` function for each input sentence.
+        """Calls the :meth:`~prettify` function for each input sentence.
 
         Args:
             X: a list of input sentences
@@ -259,7 +270,7 @@ class DependencyOutputPrettifier(Component):
             Z: a list of lists of dependency labels for sentence words
 
         Returns:
-            a list of prettified morphological analyses
+            a list of prettified UD outputs
         """
         return [self.prettify(x, y, z) for x, y, z in zip(X, Y, Z)]
 
@@ -272,7 +283,7 @@ class DependencyOutputPrettifier(Component):
             deps: list of head positions, the output of the parser
 
         Returns:
-            the prettified output of the tagger.
+            the prettified output of the parser
 
         """
         answer = []

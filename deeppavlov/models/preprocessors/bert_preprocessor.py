@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import random
 import re
 from logging import getLogger
 from typing import Tuple, List, Optional, Union
@@ -32,7 +31,7 @@ log = getLogger(__name__)
 class BertPreprocessor(Component):
     """Tokenize text on subtokens, encode subtokens with their indices, create tokens and segment masks.
 
-    Check details in convert_examples_to_features function.
+    Check details in :func:`bert_dp.preprocessing.convert_examples_to_features` function.
 
     Args:
         vocab_file: path to vocabulary
@@ -55,7 +54,7 @@ class BertPreprocessor(Component):
                                        do_lower_case=do_lower_case)
 
     def __call__(self, texts_a: List[str], texts_b: Optional[List[str]] = None) -> List[InputFeatures]:
-        """Call Bert convert_examples_to_features function to tokenize and create masks.
+        """Call Bert :func:`bert_dp.preprocessing.convert_examples_to_features` function to tokenize and create masks.
 
         texts_a and texts_b are separated by [SEP] token
 
@@ -64,7 +63,7 @@ class BertPreprocessor(Component):
             texts_b: list of texts, it could be None, e.g. single sentence classification task
 
         Returns:
-            batch of InputFeatures with subtokens, subtoken ids, subtoken mask, segment mask.
+            batch of :class:`bert_dp.preprocessing.InputFeatures` with subtokens, subtoken ids, subtoken mask, segment mask.
 
         """
 
@@ -79,7 +78,7 @@ class BertPreprocessor(Component):
 @register('bert_ner_preprocessor')
 class BertNerPreprocessor(Component):
     """Takes tokens and splits them into bert subtokens, encodes subtokens with their indices.
-    Creates the mask of subtokens (one for the first subtoken, zero for the others).
+    Creates a mask of subtokens (one for the first subtoken, zero for the others).
 
     If tags are provided, calculates tags for subtokens.
 
@@ -218,7 +217,7 @@ class BertRankerPreprocessor(BertPreprocessor):
     """
 
     def __call__(self, batch: List[List[str]]) -> List[List[InputFeatures]]:
-        """Call BERT convert_examples_to_features function to tokenize and create masks.
+        """Call BERT :func:`bert_dp.preprocessing.convert_examples_to_features` function to tokenize and create masks.
 
         Args:
             batch: list of elemenents where the first element represents the batch with contexts
@@ -260,7 +259,7 @@ class BertSepRankerPreprocessor(BertPreprocessor):
     """
 
     def __call__(self, batch: List[List[str]]) -> List[List[InputFeatures]]:
-        """Call BERT convert_examples_to_features function to tokenize and create masks.
+        """Call BERT :func:`bert_dp.preprocessing.convert_examples_to_features` function to tokenize and create masks.
 
         Args:
             batch: list of elemenents where the first element represents the batch with contexts
@@ -301,9 +300,9 @@ class BertSepRankerPredictorPreprocessor(BertSepRankerPreprocessor):
 
     Args:
         resps: list of strings containing the base of text responses
-        resp_vecs: BERT vector respresentations of `resps`, if is `None` features for the response base will be build
+        resp_vecs: BERT vector respresentations of ``resps``, if is ``None`` features for the response base will be build
         conts: list of strings containing the base of text contexts
-        cont_vecs: BERT vector respresentations of `conts`, if is `None` features for the response base will be build
+        cont_vecs: BERT vector respresentations of ``conts``, if is ``None`` features for the response base will be build
     """
 
     def __init__(self,

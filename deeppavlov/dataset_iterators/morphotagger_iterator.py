@@ -60,8 +60,9 @@ class MorphoTaggerDatasetIterator(DataLearningIterator):
                 For fair comparison with UD Pipe it is set to 0.9 for UD experiments.
                 It is actually used only for Turkish data.
     """
+
     def __init__(self, data: Dict[str, List[Tuple[Any, Any]]], seed: int = None,
-                 shuffle: bool = True,  min_train_fraction: float = 0.0,
+                 shuffle: bool = True, min_train_fraction: float = 0.0,
                  validation_split: float = 0.2) -> None:
         self.validation_split = validation_split
         self.min_train_fraction = min_train_fraction
@@ -75,7 +76,7 @@ class MorphoTaggerDatasetIterator(DataLearningIterator):
         """
         if len(self.valid) == 0:
             if self.shuffle:
-                random.shuffle(self.train)
+                self.random.shuffle(self.train)
             L = int(len(self.train) * (1.0 - self.validation_split))
             self.train, self.valid = self.train[:L], self.train[L:]
         elif self.min_train_fraction > 0.0:
@@ -109,7 +110,7 @@ class MorphoTaggerDatasetIterator(DataLearningIterator):
             batch_size = L
         starts = list(range(0, L, batch_size))
         if shuffle:
-            np.random.shuffle(starts)
+            self.random.shuffle(starts)
         for start in starts:
             indexes_to_yield = indexes[start:start + batch_size]
             data_to_yield = tuple(list(x) for x in zip(*([data[i] for i in indexes_to_yield])))
