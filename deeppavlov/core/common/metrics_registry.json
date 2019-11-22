@@ -7,6 +7,8 @@
   "f1": "deeppavlov.metrics.fmeasure:round_f1",
   "f1_macro": "deeppavlov.metrics.fmeasure:round_f1_macro",
   "f1_weighted": "deeppavlov.metrics.fmeasure:round_f1_weighted",
+  "gapping_sentence_f1": "deeppavlov.metrics.gapping:gapping_sentence_f1",
+  "gapping_position_f1": "deeppavlov.metrics.gapping:gapping_position_f1",
   "google_bleu": "deeppavlov.metrics.bleu:google_bleu",
   "kbqa_accuracy": "deeppavlov.metrics.accuracy:kbqa_accuracy",
   "log_loss": "deeppavlov.metrics.log_loss:sk_log_loss",

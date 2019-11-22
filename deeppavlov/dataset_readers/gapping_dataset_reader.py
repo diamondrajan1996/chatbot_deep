@@ -35,3 +35,23 @@ def read_gapping_file(infile, indexes=None, skip_first_line=True):
             answer.append((text, label, curr_answer))
     return answer
 
+
+@register("gapping_dataset_reader")
+class GappingDatasetReader:
+
+    def read(self, data_path: List[Union[Path, str]],
+             data_types: Optional[List[str]] = None, **kwargs) -> Dict[str, List]:
+        if data_types is None:
+            data_types = ["train", "valid", "test"]
+        if len(data_path) != len(data_types):
+            raise ValueError("The number of files should be able to the number of data types.")
+        data = {}
+        for mode, filepath in zip(data_types, data_path):
+            data[mode] = read_gapping_file(filepath, **kwargs)
+        return data
+
+
+
+
+
+

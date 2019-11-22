@@ -6,6 +6,7 @@
   "api_router": "deeppavlov.models.api_requester.api_router:ApiRouter",
   "basic_classification_iterator": "deeppavlov.dataset_iterators.basic_classification_iterator:BasicClassificationDatasetIterator",
   "basic_classification_reader": "deeppavlov.dataset_readers.basic_classification_reader:BasicClassificationDatasetReader",
+  "bert_gapping_recognizer": "deeppavlov.models.gapping.network:BertGappingRecognizer",
   "bert_classifier": "deeppavlov.models.bert.bert_classifier:BertClassifierModel",
   "bert_sequence_tagger": "deeppavlov.models.bert.bert_sequence_tagger:BertSequenceTagger",
   "bert_syntax_parser": "deeppavlov.models.syntax_parser.network:BertSyntaxParser",
@@ -23,6 +24,7 @@
   "capitalization_featurizer": "deeppavlov.models.preprocessors.capitalization:CapitalizationPreprocessor",
   "char_splitter": "deeppavlov.models.preprocessors.char_splitter:CharSplitter",
   "char_splitting_lowercase_preprocessor": "deeppavlov.models.preprocessors.capitalization:CharSplittingLowercasePreprocessor",
+  "char_to_word_indexer": "deeppavlov.models.gapping.utils:CharToWordIndexer",
   "chu_liu_edmonds_transformer": "deeppavlov.models.syntax_parser.parser:ChuLiuEdmonds",
   "conll2003_reader": "deeppavlov.dataset_readers.conll2003_reader:Conll2003DatasetReader",
   "cos_sim_classifier": "deeppavlov.models.classifiers.cos_sim_classifier:CosineSimilarityClassifier",
@@ -55,6 +57,8 @@
   "file_paths_iterator": "deeppavlov.dataset_iterators.file_paths_iterator:FilePathsIterator",
   "file_paths_reader": "deeppavlov.dataset_readers.file_paths_reader:FilePathsReader",
   "fit_trainer": "deeppavlov.core.trainers.fit_trainer:FitTrainer",
+  "gapping_dataset_reader": "deeppavlov.models.gapping.utils:GappingDatasetReader",
+  "gapping_source_preprocessor": "deeppavlov.models.gapping.utils:GappingSourcePreprocessor",
   "glove": "deeppavlov.models.embedders.glove_embedder:GloVeEmbedder",
   "go_bot": "deeppavlov.models.go_bot.network:GoalOrientedBot",
   "hashing_tfidf_vectorizer": "deeppavlov.models.vectorizers.hashing_tfidf_vectorizer:HashingTfIdfVectorizer",
@@ -157,6 +161,7 @@
   "ubuntu_v1_mt_reader": "deeppavlov.dataset_readers.ubuntu_v1_mt_reader:UbuntuV1MTReader",
   "ubuntu_v2_mt_reader": "deeppavlov.dataset_readers.ubuntu_v2_mt_reader:UbuntuV2MTReader",
   "ubuntu_v2_reader": "deeppavlov.dataset_readers.ubuntu_v2_reader:UbuntuV2Reader",
+  "verb_selector": "deeppavlov.models.gapping.utils:VerbSelector",
   "wiki_sqlite_vocab": "deeppavlov.vocabs.wiki_sqlite:WikiSQLiteVocab",
   "wikitionary_100K_vocab": "deeppavlov.vocabs.typos:Wiki100KDictionary"
 }

@@ -1,13 +1,13 @@
-from deeppavlov.dataset_readers.gapping_dataset_reader import read_gapping_file
+from deeppavlov.dataset_readers.gapping_dataset_reader import read_gapping_file, GappingDatasetReader
 from deeppavlov.core.data.data_learning_iterator import DataLearningIterator
 from deeppavlov.models.tokenizers.lazy_tokenizer import LazyTokenizer
 from deeppavlov.models.preprocessors.bert_preprocessor import BertNerPreprocessor
 from deeppavlov.models.preprocessors.mask import Mask
-from deeppavlov.models.gapping.utils import CharToWordIndexer, VerbSelector, GappingSourceTransformer
+from deeppavlov.models.gapping.utils import CharToWordIndexer, VerbSelector, GappingSourcePreprocessor
 from deeppavlov.models.gapping.network import *
 
 
-def gapping_f1_metric(y_true, y_pred):
+def gapping_metric(y_true, y_pred):
     tp_sents, tn_sents, fn_sents, fp_sents = 0, 0, 0, 0
     tp_words, fp_words, fn_words = 0, 0, 0
     for (true_verbs, true_gaps), (pred_verbs, pred_gaps) in zip(y_true, y_pred):
@@ -33,15 +33,17 @@ def gapping_f1_metric(y_true, y_pred):
     sent_accuracy = (tp_sents + tn_sents) / (tn_sents + tp_sents + fp_sents + fn_sents)
     return {"sent_f1": 100 * sent_f1, "gap_f1": 100 * gap_f1, "sent_acc": 100 * sent_accuracy}
 
+
 BERT_VOCAB_PATH = "/home/alexeysorokin/data/SberChallenge/data/my_models/rubert_cased_v1/vocab.txt"
 BERT_CONFIG_FILE = "/home/alexeysorokin/data/SberChallenge/data/my_models/rubert_cased_v1/bert_config.json"
 BERT_MODEL_FILE = "/home/alexeysorokin/data/SberChallenge/data/my_models/rubert_cased_v1/bert_model.ckpt"
 
 tokenizer, char_to_word_indexer = LazyTokenizer(), CharToWordIndexer()
-data = read_gapping_file("/home/alexeysorokin/data/Other/AGRR-2019/dev.csv")
-iterator = DataLearningIterator({"train": data}, shuffle=False)
+reader = GappingDatasetReader()
+data = reader.read(data_path=["/home/alexeysorokin/data/Other/AGRR-2019/dev.csv"], data_types=["train"])
+iterator = DataLearningIterator(data, shuffle=False)
 verb_selector = VerbSelector("configs/morpho_tagger/BERT/morpho_ru_syntagrus_bert.json")
-gapping_source_transformer = GappingSourceTransformer()
+gapping_source_transformer = GappingSourcePreprocessor()
 bert_preprocessor = BertNerPreprocessor(BERT_VOCAB_PATH, max_subword_length=15,
                                         subword_mask_mode="last")
 masker = Mask()
@@ -71,6 +73,7 @@ for j, elem in enumerate(iterator.gen_batches(batch_size=8), 1):
     #     print(sent)
     #     print(label, curr_indexes, curr_verb_indexes, *curr_matrix, sep="\t")
     #     # print(curr_matrix.shape, curr_matrix.nonzero())
+    # break
     for i in range(1):
         batch_output = recognizer.train_on_batch(bert_indexes, bert_subtokens_mask, bert_mask,
                                                  verb_indexes, verb_gap_matrixes)
@@ -88,4 +91,4 @@ for j, elem in enumerate(iterator.gen_batches(batch_size=8), 1):
             print(r, *elem[0], sep=":", end="-")
             print(*elem[1], sep=",", end=" ")
     print("")
-    print(gapping_f1_metric(verb_gap_indexes, batch_predictions))
+    print(gapping_metric(verb_gap_indexes, batch_predictions))

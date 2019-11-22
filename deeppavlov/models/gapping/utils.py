@@ -2,6 +2,7 @@ import bisect
 
 import numpy as np
 
+from deeppavlov.core.common.registry import register
 from deeppavlov import build_model
 from deeppavlov.core.commands.utils import parse_config
 from deeppavlov.models.morpho_tagger.common import make_pos_and_tag
@@ -17,6 +18,7 @@ def tokens_to_indexes(token_starts, char_index):
         return token_starts
     return bisect.bisect_left(token_starts, char_index)
 
+
 def _make_token_starts(text, words):
     starts = []
     start = 0
@@ -31,6 +33,7 @@ def _make_token_starts(text, words):
     return starts
 
 
+@register("char_to_word_indexer")
 class CharToWordIndexer:
 
     def __init__(self):
@@ -52,6 +55,8 @@ def is_verb(tag, word=None):
             return True
         return pos in ["VERB", "AUX"]
 
+
+@register("verb_selector")
 class VerbSelector:
 
     def __init__(self, config_path):
@@ -69,7 +74,9 @@ class VerbSelector:
                     answer[i].append(j)
         return answer
 
-class GappingSourceTransformer:
+
+@register("gapping_source_preprocessor")
+class GappingSourcePreprocessor:
 
     def __init__(self, only_first=True, only_starts=True, return_indexes=True):
         self.only_first = only_first
