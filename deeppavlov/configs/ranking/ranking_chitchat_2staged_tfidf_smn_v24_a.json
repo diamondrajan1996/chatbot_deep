@@ -1,5 +1,5 @@
 {
-  "info": "Bot+intents+sentiment (v24_g; 09.04.19) Gopnik V5 Bot. Books_v2 + VK + pBot. +replaced replicas; -hedgehogs; +spherical horse; Total 577285 dialogs",
+  "info": "Bot+intents+sentiment (v24_a; 09.04.19) Alice V5 Bot.  Alice2Alice + Toloka_Alice_only. Total 203780 dialogs",
   "chainer": {
     "in": ["utterances_batch", "history_batch", "states_batch"],
     "pipe": [
