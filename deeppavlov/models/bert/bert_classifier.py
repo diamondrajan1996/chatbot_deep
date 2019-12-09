@@ -234,11 +234,6 @@ class BertClassifierModel(LRScheduledTFModel):
         input_ids = [f.input_ids for f in features]
         input_masks = [f.input_mask for f in features]
         input_type_ids = [f.input_type_ids for f in features]
-        print('++++++++++++++++++++++++++')
-        print(input_ids)
-        print(input_masks)
-        print(input_type_ids)
-        print('++++++++++++++++++++++++++')
 
         feed_dict = self._build_feed_dict(input_ids, input_masks, input_type_ids)
         if not self.return_probas:

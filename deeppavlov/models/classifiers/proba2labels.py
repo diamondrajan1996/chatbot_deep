@@ -64,9 +64,6 @@ class Proba2Labels(Component):
         Returns:
             list of labels (only label classification) or list of lists of labels (multi-label classification)
         """
-        print('-------------------------------')
-        print(data)
-        print('-------------------------------')
         if self.confident_threshold:
             return [list(np.where(np.array(d) > self.confident_threshold)[0])
                     for d in data]
