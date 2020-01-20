@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import nltk
 from typing import List
 
-from deeppavlov.core.models.component import Component
+import nltk
+
 from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.component import Component
 
 
 @register("nltk_tokenizer")
@@ -30,6 +31,7 @@ class NLTKTokenizer(Component):
     Attributes:
         tokenizer: tokenizer instance from nltk.tokenizers
     """
+
     def __init__(self, tokenizer: str = "wordpunct_tokenize", download: bool = False,
                  *args, **kwargs):
         if download:

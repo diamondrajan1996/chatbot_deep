@@ -38,7 +38,7 @@
       {
         "id": "src_token_vocab",
         "class_name": "simple_vocab",
-        "default_token": "<UNK>",
+        "unk_token": "<UNK>",
         "special_tokens": ["<UNK>", "<SOS>"],
         "save_path": "{MODELS_PATH}/vocabs/kvret_src_tokens.dict",
         "load_path": "{MODELS_PATH}/vocabs/kvret_src_tokens.dict"
@@ -46,7 +46,7 @@
       {
         "id": "tgt_token_vocab",
         "class_name": "simple_vocab",
-        "default_token": "<UNK>",
+        "unk_token": "<UNK>",
         "special_tokens": ["<UNK>", "<SOS>", "<EOS>"],
         "save_path": "{MODELS_PATH}/vocabs/kvret_tgt_tokens.dict",
         "load_path": "{MODELS_PATH}/vocabs/kvret_tgt_tokens.dict"
@@ -78,7 +78,6 @@
           "hidden_size": 256,
           "kb_attention_hidden_sizes": [64, 32]
         },
-        "debug": true,
         "debug": false,
         "source_vocab": "#src_token_vocab",
         "target_vocab": "#tgt_token_vocab",
@@ -107,7 +106,13 @@
       }
     ]
   },
-  "train": {},
+  "train": {
+    "class_name": "fit_trainer",
+    "evaluation_targets": [
+      "valid",
+      "test"
+    ]
+  },
   "metadata": {
     "variables": {
       "ROOT_PATH": "~/.deeppavlov",
@@ -120,10 +125,6 @@
       "{DEEPPAVLOV_PATH}/requirements/en_core_web_sm.txt",
       "{DEEPPAVLOV_PATH}/requirements/fasttext.txt"
     ],
-    "labels": {
-      "telegram_utils": "Seq2SeqGoalOrientedBot",
-      "server_utils": "GoalOrientedBot"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/vocabs.tar.gz",

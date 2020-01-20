@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Dict, Union, Tuple, Any
 from abc import ABCMeta, abstractmethod
+from typing import List, Dict, Union, Tuple, Any
+
 import numpy as np
 
 from deeppavlov.core.common.registry import register
@@ -63,6 +64,7 @@ class DefaultTracker(Tracker):
     Parameters:
         slot_names: list of slots that should be tracked.
     """
+
     def __init__(self, slot_names: List[str]) -> None:
         self.slot_names = list(slot_names)
         self.reset_state()
@@ -82,6 +84,7 @@ class DefaultTracker(Tracker):
     def update_state(self, slots):
         def _filter(slots):
             return filter(lambda s: s[0] in self.slot_names, slots)
+
         if isinstance(slots, list):
             self.history.extend(_filter(slots))
         elif isinstance(slots, dict):
@@ -119,6 +122,7 @@ class FeaturizedTracker(Tracker):
     Parameters:
         slot_names: list of slots that should be tracked.
     """
+
     def __init__(self, slot_names: List[str]) -> None:
         self.slot_names = list(slot_names)
         self.reset_state()
@@ -138,6 +142,7 @@ class FeaturizedTracker(Tracker):
     def update_state(self, slots):
         def _filter(slots):
             return filter(lambda s: s[0] in self.slot_names, slots)
+
         prev_state = self.get_state()
         if isinstance(slots, list):
             self.history.extend(_filter(slots))
@@ -173,7 +178,7 @@ class FeaturizedTracker(Tracker):
         feats = np.zeros(self.state_size, dtype=np.float32)
         curr_state = self.get_state()
         for i, slot in enumerate(self.slot_names):
-            if (slot in curr_state) and (slot in state) and\
+            if (slot in curr_state) and (slot in state) and \
                     (curr_state[slot] != state[slot]):
                 feats[i] = 1.
         return feats

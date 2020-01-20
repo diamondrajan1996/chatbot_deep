@@ -1,21 +1,34 @@
-import pathlib
-from collections import defaultdict
-import re
-from typing import List, Dict, Generator, Tuple, Any, AnyStr, Union, Optional
-from abc import abstractmethod
-import numpy as np
+# Copyright 2017 Neural Networks and Deep Learning lab, MIPT
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+from abc import abstractmethod
+from typing import List, Optional
+
+import numpy as np
 from pymorphy2 import MorphAnalyzer
 from russian_tagsets import converters
 
-from deeppavlov.core.models.serializable import Serializable
 from deeppavlov.core.common.registry import register
-from deeppavlov.models.morpho_tagger.common_tagger import make_pos_and_tag, get_tag_distance
+from deeppavlov.core.models.serializable import Serializable
+from deeppavlov.models.morpho_tagger.common_tagger import get_tag_distance
 
 
 class BasicLemmatizer(Serializable):
     """
-    A basic class for lemmatizers.
+    A basic class for lemmatizers. It must contain two methods:
+    * :meth: `_lemmatize` for single word lemmatization. It is an abstract method and should be reimplemented.
+    * :meth: `__call__` for lemmatizing a batch of sentences.
     """
 
     def __init__(self, save_path: Optional[str] = None,
@@ -28,7 +41,7 @@ class BasicLemmatizer(Serializable):
         Lemmatizes a separate word given its tag.
 
         Args:
-            word: the inpurt word.
+            word: the input word.
             tag: optional morphological tag.
 
         Returns:
@@ -56,6 +69,7 @@ class BasicLemmatizer(Serializable):
         answer = [[self._lemmatize(word, tag) for word, tag in zip(*elem)] for elem in zip(data, tags)]
         return answer
 
+
 @register("UD_pymorphy_lemmatizer")
 class UDPymorphyLemmatizer(BasicLemmatizer):
     """
@@ -63,6 +77,7 @@ class UDPymorphyLemmatizer(BasicLemmatizer):
     Lemma is selected from one of PyMorphy parses,
     the parse whose tag resembles the most a known UD tag is chosen.
     """
+
     def __init__(self, save_path: Optional[str] = None, load_path: Optional[str] = None,
                  transform_lemmas=False, **kwargs) -> None:
         self.transform_lemmas = transform_lemmas
@@ -80,7 +95,7 @@ class UDPymorphyLemmatizer(BasicLemmatizer):
     def _reset(self):
         self.memo = dict()
 
-    def _lemmatize(self, word: str, tag: Optional[str] = None):
+    def _lemmatize(self, word: str, tag: Optional[str] = None) -> str:
         lemma = self.memo.get((word, tag))
         if lemma is not None:
             return lemma
@@ -95,6 +110,3 @@ class UDPymorphyLemmatizer(BasicLemmatizer):
                     break
         self.memo[(word, tag)] = best_lemma
         return best_lemma
-
-
-

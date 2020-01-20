@@ -13,20 +13,18 @@
 # limitations under the License.
 
 import csv
+from logging import getLogger
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import requests
-from pathlib import Path
-
 from lxml import html
 
 from deeppavlov.core.common.registry import register
-from deeppavlov.core.data.utils import is_done, download, mark_done
 from deeppavlov.core.data.dataset_reader import DatasetReader
-from deeppavlov.core.common.log import get_logger
+from deeppavlov.core.data.utils import is_done, download, mark_done
 
-
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('typos_custom_reader')
@@ -74,6 +72,7 @@ class TyposWikipedia(TyposCustom):
      English Wikipedia's list of common misspellings
 
     """
+
     @staticmethod
     def build(data_path: str) -> Path:
         """Download and parse common misspellings list from `Wikipedia <https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings/For_machines>`_
@@ -118,6 +117,7 @@ class TyposKartaslov(DatasetReader):
      a Russian misspellings dataset from `kartaslov <https://github.com/dkulagin/kartaslov>`_
 
     """
+
     def __init__(self):
         pass
 

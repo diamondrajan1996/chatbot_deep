@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from overrides import overrides
-from typing import List, Union, Iterator
-from pathlib import Path
 from abc import ABCMeta, abstractmethod
+from logging import getLogger
+from pathlib import Path
+from typing import List, Union, Iterator
 
 import numpy as np
+from overrides import overrides
 
-from deeppavlov.core.models.component import Component
-from deeppavlov.core.common.log import get_logger
-from deeppavlov.core.models.serializable import Serializable
 from deeppavlov.core.data.utils import zero_pad
+from deeppavlov.core.models.component import Component
+from deeppavlov.core.models.serializable import Serializable
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 class Embedder(Component, Serializable, metaclass=ABCMeta):
@@ -43,6 +43,7 @@ class Embedder(Component, Serializable, metaclass=ABCMeta):
         mean: whether to return one mean embedding vector per sample
         load_path: path with pre-trained fastText binary model
     """
+
     def __init__(self, load_path: Union[str, Path], pad_zero: bool = False, mean: bool = False, **kwargs) -> None:
         """
         Initialize embedder with given parameters
@@ -54,9 +55,6 @@ class Embedder(Component, Serializable, metaclass=ABCMeta):
         self.dim = None
         self.model = None
         self.load()
-
-    def destroy(self):
-        del self.model
 
     @overrides
     def save(self) -> None:

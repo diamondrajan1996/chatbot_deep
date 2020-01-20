@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Generator, Any, Optional, Union, Tuple
 
-from nltk.tokenize.toktok import ToktokTokenizer
 # from nltk.corpus import stopwords
 # STOPWORDS = stopwords.words('russian')
 import pymorphy2
+from nltk.tokenize.toktok import ToktokTokenizer
 
-from deeppavlov.core.models.component import Component
 from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.component import Component
 from deeppavlov.models.tokenizers.utils import detokenize, ngramize
-from deeppavlov.core.common.log import get_logger
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 
 @register('ru_tokenizer')
@@ -99,7 +99,7 @@ class RussianTokenizer(Component):
         raise TypeError(
             "StreamSpacyTokenizer.__call__() is not implemented for `{}`".format(type(batch[0])))
 
-    def _tokenize(self, data: List[str], ngram_range: Tuple[int, int]=(1, 1), lowercase: bool=True)\
+    def _tokenize(self, data: List[str], ngram_range: Tuple[int, int] = (1, 1), lowercase: bool = True) \
             -> Generator[List[str], Any, None]:
         """Tokenize a list of documents.
 
@@ -135,7 +135,7 @@ class RussianTokenizer(Component):
             processed_doc = ngramize(filtered, ngram_range=_ngram_range)
             yield from processed_doc
 
-    def _lemmatize(self, data: List[str], ngram_range: Tuple[int, int]=(1, 1)) -> \
+    def _lemmatize(self, data: List[str], ngram_range: Tuple[int, int] = (1, 1)) -> \
             Generator[List[str], Any, None]:
         """Lemmatize a list of documents.
 
@@ -171,7 +171,7 @@ class RussianTokenizer(Component):
             processed_doc = ngramize(filtered, ngram_range=_ngram_range)
             yield from processed_doc
 
-    def _filter(self, items: List[str], alphas_only: bool=True) -> List[str]:
+    def _filter(self, items: List[str], alphas_only: bool = True) -> List[str]:
         """Filter a list of tokens/lemmas.
 
         Args:
@@ -205,5 +205,3 @@ class RussianTokenizer(Component):
 
        """
         self.stopwords = stopwords
-
-

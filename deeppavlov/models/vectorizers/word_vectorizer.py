@@ -13,18 +13,17 @@
 # limitations under the License.
 
 import pathlib
-from collections import defaultdict
-import re
-from typing import List, Dict, Generator, Tuple, Any, AnyStr, Union
 from abc import abstractmethod
-import numpy as np
+from collections import defaultdict
+from typing import List, Dict, AnyStr, Union
 
+import numpy as np
 from pymorphy2 import MorphAnalyzer
 from russian_tagsets import converters
 
+from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.component import Component
 from deeppavlov.core.models.serializable import Serializable
-from deeppavlov.core.common.registry import register
 from deeppavlov.models.morpho_tagger.common_tagger import make_pos_and_tag
 
 
@@ -80,6 +79,7 @@ class DictionaryVectorizer(WordIndexVectorizer):
         min_freq: minimal frequency of tag to memorize this tag,
         unk_token: unknown token to be yielded for unknown words
     """
+
     def __init__(self, save_path: str, load_path: Union[str, List[str]],
                  min_freq: int = 1, unk_token: str = None, **kwargs) -> None:
         super().__init__(save_path, load_path, **kwargs)
@@ -117,7 +117,7 @@ class DictionaryVectorizer(WordIndexVectorizer):
                     labels_by_words[word].update(labels.split())
         self._initialize(labels_by_words)
 
-    def _initialize(self, labels_by_words : Dict):
+    def _initialize(self, labels_by_words: Dict):
         self._i2t = [self.unk_token] if self.unk_token is not None else []
         self._t2i = defaultdict(lambda: self.unk_token)
         freq = defaultdict(int)
@@ -194,12 +194,7 @@ class PymorphyVectorizer(WordIndexVectorizer):
         self._start_nodes_for_pos = dict()
         self._data = [None]
         for tag, code in self._t2i.items():
-            # if "," in tag:
-            #     pos, tag = tag.split(",", maxsplit=1)
-            #     tag = sorted([tuple(elem.split("=")) for elem in tag.split("|")])
-            # else:
-            #     pos, tag = tag, []
-            pos, tag = make_pos_and_tag(tag, sep=",", return_mode="sorted_dict")
+            pos, tag = make_pos_and_tag(tag, sep=",", return_mode="sorted_items")
             start = self._start_nodes_for_pos.get(pos)
             if start is None:
                 start = self._start_nodes_for_pos[pos] = len(self._nodes)
@@ -292,4 +287,3 @@ class PymorphyVectorizer(WordIndexVectorizer):
             tag = self.converter(str(pymorphy_tag))
             answer = self.memorized_tag_indexes[pymorphy_tag] = self.find_compatible(tag)
         return answer
-

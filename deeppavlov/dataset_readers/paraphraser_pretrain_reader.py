@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
 import json
+from typing import Dict, List, Tuple
 
-from deeppavlov.core.data.dataset_reader import DatasetReader
-from deeppavlov.core.common.registry import register
 from deeppavlov.core.commands.utils import expand_path
+from deeppavlov.core.common.registry import register
+from deeppavlov.core.data.dataset_reader import DatasetReader
 
 
 @register("paraphraser_pretrain_reader")
@@ -42,7 +42,6 @@ class ParaphraserPretrainReader(DatasetReader):
         dataset = {"train": train_data, "valid": test_data, "test": test_data}
         return dataset
 
-
     def int_class(self, str_y):
         if str_y == '-1':
             return 0
@@ -53,5 +52,3 @@ class ParaphraserPretrainReader(DatasetReader):
         with open(name) as f:
             data = json.load(f)
         return [([doc['text_1'], doc['text_2']], self.int_class(doc['class'])) for doc in data]
-
-

@@ -13,15 +13,15 @@
 # limitations under the License.
 
 
+from logging import getLogger
 from typing import List
+
 from sklearn.model_selection import train_test_split
 
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.data_learning_iterator import DataLearningIterator
-from deeppavlov.core.common.log import get_logger
 
-
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('basic_classification_iterator')
@@ -46,15 +46,16 @@ class BasicClassificationDatasetIterator(DataLearningIterator):
     Attributes:
         data: dictionary of data with fields "train", "valid" and "test" (or some of them)
     """
+
     def __init__(self, data: dict,
                  fields_to_merge: List[str] = None, merged_field: str = None,
                  field_to_split: str = None, split_fields: List[str] = None, split_proportions: List[float] = None,
-                 seed: int = None, shuffle: bool = True, split_seed: int=None,
+                 seed: int = None, shuffle: bool = True, split_seed: int = None,
                  stratify: bool = None,
                  *args, **kwargs):
         """
         Initialize dataset using data from DatasetReader,
-        merges and splits fields according to the given parameters
+        merges and splits fields according to the given parameters.
         """
         super().__init__(data, seed=seed, shuffle=shuffle)
 
@@ -81,7 +82,7 @@ class BasicClassificationDatasetIterator(DataLearningIterator):
                 raise IOError("Given field to split BUT not given names of split fields")
 
     def _split_data(self, field_to_split: str = None, split_fields: List[str] = None,
-                    split_proportions: List[float] = None, split_seed: int=None, stratify: bool = None) -> bool:
+                    split_proportions: List[float] = None, split_seed: int = None, stratify: bool = None) -> bool:
         """
         Split given field of dataset to the given list of fields with corresponding proportions
 

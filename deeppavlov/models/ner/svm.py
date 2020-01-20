@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import chain
-from typing import List, Union
 import pickle
+from itertools import chain
+from logging import getLogger
+from typing import List, Union
 
-from sklearn.svm import SVC
 import numpy as np
+from sklearn.svm import SVC
 
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.estimator import Estimator
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('ner_svm')
@@ -36,6 +36,7 @@ class SVMTagger(Estimator):
         kernel: kernel of SVM (RBF works well in the most of the cases)
         seed: seed for SVM initialization
     """
+
     def __init__(self, return_probabilities: bool = False, kernel: str = 'rbf', seed=42, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.classifier = None
@@ -68,10 +69,10 @@ class SVMTagger(Estimator):
 
     def save(self) -> None:
         with self.save_path.open('wb') as f:
-            pickle.dump(self.classifier, f)
+            pickle.dump(self.classifier, f, protocol=4)
 
     def serialize(self):
-        return pickle.dumps(self.classifier)
+        return pickle.dumps(self.classifier, protocol=4)
 
     def load(self) -> None:
         if self.load_path.exists():

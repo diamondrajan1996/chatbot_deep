@@ -67,20 +67,26 @@
   "train": {
     "epochs": 100,
     "batch_size": 64,
-
-    "metrics": [{
+    "metrics": [
+      {
         "name": "ner_f1",
         "inputs": [
           "tags_bio",
           "tags_bio_hat"
         ]
-      }],
+      }
+    ],
     "validation_patience": 7,
     "val_every_n_epochs": 1,
 
     "log_every_n_epochs": 1,
     "show_examples": false,
-    "tensorboard_log_dir": "{MODELS_PATH}/ner_fs/logs"
+    "tensorboard_log_dir": "{MODELS_PATH}/ner_fs/logs",
+    "class_name": "fit_trainer",
+    "evaluation_targets": [
+      "valid",
+      "test"
+    ]
   },
   "metadata": {
     "variables": {
@@ -93,10 +99,6 @@
       "{DEEPPAVLOV_PATH}/requirements/tf.txt",
       "{DEEPPAVLOV_PATH}/requirements/tf-hub.txt"
     ],
-    "labels": {
-      "telegram_utils": "NERCoNLL2003Model",
-      "server_utils": "NER"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/elmo_ru-news_wmt11-16_1.5M_steps.tar.gz",
@@ -105,4 +107,3 @@
     ]
   }
 }
-

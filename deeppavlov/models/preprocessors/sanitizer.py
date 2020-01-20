@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unicodedata
-import sys
 import re
+import sys
+import unicodedata
 
-from deeppavlov.core.models.component import Component
 from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.component import Component
 
 
 @register('sanitizer')
@@ -29,6 +29,7 @@ class Sanitizer(Component):
             diacritical signs are something like hats and stress marks
         nums: whether to replace all digits with 1 or not
     """
+
     def __init__(self,
                  diacritical: bool = True,
                  nums: bool = False,

@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deeppavlov.core.models.component import Component
-from deeppavlov.core.common.registry import register
 import pymorphy2
+
+from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.component import Component
 
 
 @register('pymorphy_russian_lemmatizer')
 class PymorphyRussianLemmatizer(Component):
     """Class for lemmatization using PyMorphy."""
+
     def __init__(self, *args, **kwargs):
         self.lemmatizer = pymorphy2.MorphAnalyzer()
 

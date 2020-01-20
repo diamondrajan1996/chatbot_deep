@@ -14,13 +14,12 @@
 
 import importlib
 import json
+from logging import getLogger
 from pathlib import Path
 
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.common.errors import ConfigError
 
-
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 _registry_path = Path(__file__).parent / 'registry.json'
 if _registry_path.exists():
@@ -46,6 +45,7 @@ def register(name: str = None) -> type:
     Register classes that could be initialized from JSON configuration file.
     If name is not passed, the class name is converted to snake-case.
     """
+
     def decorate(model_cls: type, reg_name: str = None) -> type:
         model_name = reg_name or short_name(model_cls)
         global _REGISTRY

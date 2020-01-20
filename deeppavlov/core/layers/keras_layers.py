@@ -13,10 +13,10 @@
 # limitations under the License.
 
 from keras import backend as K
+from keras.activations import softmax
 from keras.engine.topology import Layer
 from keras.layers import Dense, Reshape, Concatenate, Lambda
 from keras.layers.merge import Multiply
-from keras.activations import softmax
 
 
 def expand_tile(units, axis):
@@ -33,7 +33,7 @@ def expand_tile(units, axis):
     repetitions = [1, 1, 1, 1]
     repetitions[axis] = n_time_steps
     if axis == 1:
-        expanded = Reshape(target_shape=( (1,) + K.int_shape(units)[1:] ))(units)
+        expanded = Reshape(target_shape=((1,) + K.int_shape(units)[1:]))(units)
     else:
         expanded = Reshape(target_shape=(K.int_shape(units)[1:2] + (1,) + K.int_shape(units)[2:]))(units)
     return K.tile(expanded, repetitions)
@@ -113,9 +113,9 @@ class FullMatchingLayer(Layer):
         self.W = []
         for i in range(self.output_dim):
             self.W.append(self.add_weight(name='kernel',
-                                  shape=(1, input_shape[0][-1]),
-                                      initializer='uniform',
-                                      trainable=True))
+                                          shape=(1, input_shape[0][-1]),
+                                          initializer='uniform',
+                                          trainable=True))
         super(FullMatchingLayer, self).build(input_shape)  # Be sure to call this at the end
 
     def call(self, x):
@@ -133,7 +133,7 @@ class FullMatchingLayer(Layer):
         if self.output_dim > 1:
             persp = K.concatenate(m, 2)
         else:
-            persp = m
+            persp = m[0]
         return [persp, persp]
 
     def compute_output_shape(self, input_shape):
@@ -153,9 +153,9 @@ class MaxpoolingMatchingLayer(Layer):
         self.W = []
         for i in range(self.output_dim):
             self.W.append(self.add_weight(name='kernel',
-                                  shape=(1, input_shape[0][-1]),
-                                      initializer='uniform',
-                                      trainable=True))
+                                          shape=(1, input_shape[0][-1]),
+                                          initializer='uniform',
+                                          trainable=True))
         super(MaxpoolingMatchingLayer, self).build(input_shape)  # Be sure to call this at the end
 
     def call(self, x):
@@ -173,7 +173,7 @@ class MaxpoolingMatchingLayer(Layer):
         if self.output_dim > 1:
             persp = K.concatenate(m, 2)
         else:
-            persp = m
+            persp = m[0]
         return [persp, persp]
 
     def compute_output_shape(self, input_shape):
@@ -193,9 +193,9 @@ class AttentiveMatchingLayer(Layer):
         self.W = []
         for i in range(self.output_dim):
             self.W.append(self.add_weight(name='kernel',
-                                  shape=(1, input_shape[0][-1]),
-                                      initializer='uniform',
-                                      trainable=True))
+                                          shape=(1, input_shape[0][-1]),
+                                          initializer='uniform',
+                                          trainable=True))
         super(AttentiveMatchingLayer, self).build(input_shape)  # Be sure to call this at the end
 
     def call(self, x):
@@ -221,7 +221,7 @@ class AttentiveMatchingLayer(Layer):
         if self.output_dim > 1:
             persp = K.concatenate(m, 2)
         else:
-            persp = m
+            persp = m[0]
         return [persp, persp]
 
     def compute_output_shape(self, input_shape):
@@ -241,9 +241,9 @@ class MaxattentiveMatchingLayer(Layer):
         self.W = []
         for i in range(self.output_dim):
             self.W.append(self.add_weight(name='kernel',
-                                  shape=(1, input_shape[0][-1]),
-                                      initializer='uniform',
-                                      trainable=True))
+                                          shape=(1, input_shape[0][-1]),
+                                          initializer='uniform',
+                                          trainable=True))
         super(MaxattentiveMatchingLayer, self).build(input_shape)  # Be sure to call this at the end
 
     def call(self, x):
@@ -270,7 +270,7 @@ class MaxattentiveMatchingLayer(Layer):
         if self.output_dim > 1:
             persp = K.concatenate(m, 2)
         else:
-            persp = m
+            persp = m[0]
         return [persp, persp]
 
     def compute_output_shape(self, input_shape):

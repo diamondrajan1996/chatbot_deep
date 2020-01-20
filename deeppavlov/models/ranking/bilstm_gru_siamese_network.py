@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
+
+from keras import backend as K
 from keras.layers import Input, GlobalMaxPooling1D, Lambda, Dense, GRU
 from keras.models import Model
-from keras import backend as K
 
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.common.registry import register
 from deeppavlov.models.ranking.bilstm_siamese_network import BiLSTMSiameseNetwork
 
-log = get_logger(__name__)
+log = getLogger(__name__)
+
 
 @register('bilstm_gru_nn')
 class BiLSTMGRUSiameseNetwork(BiLSTMSiameseNetwork):
-
     """The class implementing a siamese neural network with BiLSTM, GRU and max pooling.
 
     GRU is used to take into account multi-turn dialogue ``context``.
@@ -47,6 +48,7 @@ class BiLSTMGRUSiameseNetwork(BiLSTMSiameseNetwork):
             If set to ``False`` random sampling will be used.
             Only required if ``triplet_loss`` is set to ``True``.
     """
+
     def create_model(self) -> Model:
         input = []
         if self.use_matrix:
@@ -99,11 +101,10 @@ class BiLSTMGRUSiameseNetwork(BiLSTMSiameseNetwork):
 
     def create_context_model(self) -> Model:
         m = Model(self.model.inputs[:-1],
-              self.model.get_layer("gru").output)
+                  self.model.get_layer("gru").output)
         return m
 
     def create_response_model(self) -> Model:
         m = Model(self.model.inputs[-1],
-              self.model.get_layer("pooling").get_output_at(-1))
+                  self.model.get_layer("pooling").get_output_at(-1))
         return m
-

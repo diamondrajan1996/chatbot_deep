@@ -10,16 +10,17 @@
 # limitations under the License.
 
 import re
+from logging import getLogger
 from pathlib import Path
-from typing import List, Any, Dict, Iterable, Tuple
+from typing import List, Any, Dict, Tuple
 
-from deeppavlov.core.common.log import get_logger
-from deeppavlov.core.data.dataset_reader import DatasetReader
-from deeppavlov.core.common.registry import register
 from deeppavlov.core.commands.utils import expand_path
+from deeppavlov.core.common.registry import register
+from deeppavlov.core.data.dataset_reader import DatasetReader
 from deeppavlov.core.data.utils import download_decompress, mark_done, is_done
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
+
 
 @register('amazon_ecommerce_reader')
 class AmazonEcommerceReader(DatasetReader):
@@ -56,8 +57,8 @@ class AmazonEcommerceReader(DatasetReader):
         dataset = {
             'train': [((item['Title'], [], {}), item) for item in ec_data_global],
             'valid': [],
-            'test':  []
-            }
+            'test': []
+        }
 
         logger.info(f"In total {len(ec_data_global)} items are loaded")
         return dataset

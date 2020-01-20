@@ -14,9 +14,10 @@
 
 from typing import Set, Tuple
 
-from deeppavlov.core.models.component import Component
-from deeppavlov.core.common.registry import register
 from rusenttokenize import ru_sent_tokenize, SHORTENINGS, JOINING_SHORTENINGS, PAIRED_SHORTENINGS
+
+from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.component import Component
 
 
 @register("ru_sent_tokenizer")
@@ -33,11 +34,11 @@ class RuSentTokenizer(Component):
             Use default value if working on news or fiction texts
 
     """
+
     def __init__(self, shortenings: Set[str] = SHORTENINGS,
                  joining_shortenings: Set[str] = JOINING_SHORTENINGS,
                  paired_shortenings: Set[Tuple[str, str]] = PAIRED_SHORTENINGS,
                  **kwargs):
-
         self.shortenings = shortenings
         self.joining_shortenings = joining_shortenings
         self.paired_shortenings = paired_shortenings

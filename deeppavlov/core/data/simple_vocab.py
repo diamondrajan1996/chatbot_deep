@@ -13,26 +13,37 @@
 # limitations under the License.
 
 from collections import Counter, defaultdict, Iterable
-from typing import Optional, Tuple, List
 from itertools import chain
+from logging import getLogger
+from typing import Optional, Tuple, List
 
 import numpy as np
 
-from deeppavlov.core.common.registry import register
 from deeppavlov.core.common.errors import ConfigError
-from deeppavlov.core.common.log import get_logger
-from deeppavlov.core.models.estimator import Estimator
+from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.utils import zero_pad, is_str_batch, flatten_str_batch
+from deeppavlov.core.models.estimator import Estimator
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('simple_vocab')
 class SimpleVocabulary(Estimator):
-    """Implements simple vocabulary."""
+    """Implements simple vocabulary.
+
+    Parameters:
+        special_tokens: tuple of tokens that shouldn't be counted.
+        max_tokens: upper bound for number of tokens in the vocabulary.
+        min_freq: minimal count of a token (except special tokens).
+        pad_with_zeros: if True, then batch of elements will be padded with zeros up to length of
+            the longest element in batch.
+        unk_token: label assigned to unknown tokens.
+        freq_drop_load: if True, then frequencies of tokens are set to min_freq on the model load.
+        """
+
     def __init__(self,
                  special_tokens: Tuple[str, ...] = tuple(),
-                 max_tokens: int = 2**30,
+                 max_tokens: int = 2 ** 30,
                  min_freq: int = 0,
                  pad_with_zeros: bool = False,
                  unk_token: Optional[str] = None,
@@ -51,7 +62,6 @@ class SimpleVocabulary(Estimator):
             self.load()
 
     def fit(self, *args):
-        # return None
         self.reset()
         tokens = chain(*args)
         # filter(None, <>) -- to filter empty tokens
@@ -61,6 +71,8 @@ class SimpleVocabulary(Estimator):
             self._i2t.append(special_token)
             self.count += 1
         for token, freq in self.freqs.most_common()[:self._max_tokens]:
+            if token in self.special_tokens:
+                continue
             if freq >= self._min_freq:
                 self._t2i[token] = self.count
                 self._i2t.append(token)
@@ -80,7 +92,7 @@ class SimpleVocabulary(Estimator):
             looked_up_batch = [self(sample, is_top=False) for sample in batch]
         else:
             return self[batch]
-        if is_top and self._pad_with_zeros and not is_str_batch(looked_up_batch):
+        if self._pad_with_zeros and is_top and not is_str_batch(looked_up_batch):
             looked_up_batch = zero_pad(looked_up_batch)
 
         return looked_up_batch
@@ -109,7 +121,7 @@ class SimpleVocabulary(Estimator):
                 self._add_tokens_with_freqs(tokens, counts)
             elif not self.load_path.parent.is_dir():
                 raise ConfigError("Provided `load_path` for {} doesn't exist!".format(
-                                  self.__class__.__name__))
+                    self.__class__.__name__))
         else:
             raise ConfigError("`load_path` for {} is not provided!".format(self))
 
@@ -126,7 +138,7 @@ class SimpleVocabulary(Estimator):
         else:
             token, cnt = ln.split('\t', 1)
         return token, cnt
-        
+
     @property
     def len(self):
         return len(self)
@@ -162,3 +174,6 @@ class SimpleVocabulary(Estimator):
         self._t2i = defaultdict(lambda: unk_index)
         self._i2t = []
         self.count = 0
+
+    def idxs2toks(self, idxs):
+        return [self[idx] for idx in idxs]

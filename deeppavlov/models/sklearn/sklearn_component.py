@@ -12,21 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Tuple, Any, Union, Callable
-import numpy as np
-from scipy.sparse import spmatrix
-import pickle
-from pathlib import Path
-from scipy.sparse import issparse, csr_matrix
-from scipy.sparse import vstack, hstack
 import inspect
+import pickle
+from logging import getLogger
+from pathlib import Path
+from typing import List, Tuple, Union, Callable
+
+import numpy as np
+from scipy.sparse import issparse, csr_matrix
+from scipy.sparse import spmatrix
+from scipy.sparse import vstack, hstack
 
 from deeppavlov.core.common.errors import ConfigError
 from deeppavlov.core.common.registry import register, cls_from_str
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.models.estimator import Estimator
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register("sklearn_component")
@@ -59,6 +60,7 @@ class SklearnComponent(Estimator):
             e.g. ``predict``, ``predict_proba``, ``predict_log_proba``, ``transform``
         ensure_list_output: whether to ensure that output for each sample is iterable (but not string)
     """
+
     def __init__(self, model_class: str,
                  save_path: Union[str, Path] = None,
                  load_path: Union[str, Path] = None,
@@ -238,7 +240,7 @@ class SklearnComponent(Estimator):
 
         log.info("Saving model to {}".format(str(fname)))
         with open(fname, "wb") as f:
-            pickle.dump(self.model, f)
+            pickle.dump(self.model, f, protocol=4)
         return
 
     @staticmethod
@@ -280,16 +282,6 @@ class SklearnComponent(Estimator):
             x_features = np.hstack(list(x_features))
 
         return x_features
-
-    def destroy(self) -> None:
-        """
-        Delete ``self.model`` from memory
-
-        Returns:
-            None
-        """
-        del self.model
-        return
 
     @staticmethod
     def get_function_params(f: Callable) -> List[str]:

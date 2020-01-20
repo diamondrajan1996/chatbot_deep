@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import shutil
+
+import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
-import numpy as np
 
 from deeppavlov.models.elmo.elmo_model import BidirectionalLanguageModel, weight_layers
 
@@ -29,6 +31,7 @@ def make_module_spec(options, weight_file):
     Returns:
       A module spec object used for constructing a TF-Hub module.
     """
+
     def module_fn():
         """Spec function for a token embedding module."""
         # init
@@ -88,7 +91,7 @@ def make_module_spec(options, weight_file):
 
         # Input placeholders to the biLM.
         tokens = tf.placeholder(shape=(None, None), dtype=tf.string, name='ph2tokens')
-        sequence_len = tf.placeholder(shape=(None, ), dtype=tf.int32, name='ph2sequence_len')
+        sequence_len = tf.placeholder(shape=(None,), dtype=tf.int32, name='ph2sequence_len')
 
         tok_shape = tf.shape(tokens)
         line_tokens = tf.reshape(tokens, shape=[-1], name='reshape2line_tokens')
@@ -198,6 +201,8 @@ def export2hub(weight_file, hub_dir, options):
 
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
+                if hub_dir.exists():
+                    shutil.rmtree(hub_dir)
                 module.export(str(hub_dir), sess)
     finally:
         pass

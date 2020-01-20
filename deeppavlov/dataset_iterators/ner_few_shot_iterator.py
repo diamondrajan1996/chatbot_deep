@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Dict, Tuple, Any, Iterator, Optional
 import re
+from typing import List, Dict, Tuple, Any, Iterator, Optional
 
 import numpy as np
 
@@ -35,6 +35,7 @@ class NERFewShotIterator(DataLearningIterator):
             the same
         remove_not_targets: whether to replace all non target tags with `O` tag or not.
     """
+
     def __init__(self,
                  data: Dict[str, List[Tuple[Any, Any]]],
                  seed: int = None,

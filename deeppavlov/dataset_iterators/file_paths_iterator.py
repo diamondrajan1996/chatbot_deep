@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Iterator, Optional, Dict, List, Union
+from logging import getLogger
 from pathlib import Path
+from typing import Tuple, Iterator, Optional, Dict, List, Union
 
 import numpy as np
 
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.data_learning_iterator import DataLearningIterator
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.data.utils import chunk_generator
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('file_paths_iterator')
@@ -39,7 +39,7 @@ class FilePathsIterator(DataLearningIterator):
 
     def __init__(self,
                  data: Dict[str, List[Union[str, Path]]],
-                 seed: Optional[int] = None, 
+                 seed: Optional[int] = None,
                  shuffle: bool = True,
                  *args, **kwargs) -> None:
         self.seed = seed
@@ -58,7 +58,7 @@ class FilePathsIterator(DataLearningIterator):
                 self.np_random.shuffle(lines)
             yield lines
 
-    def gen_batches(self, batch_size: int, data_type: str = 'train', shuffle: Optional[bool] = None)\
+    def gen_batches(self, batch_size: int, data_type: str = 'train', shuffle: Optional[bool] = None) \
             -> Iterator[Tuple[str, str]]:
         if shuffle is None:
             shuffle = self.shuffle

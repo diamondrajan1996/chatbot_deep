@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Tuple
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-from deeppavlov.core.common.registry import register
-from deeppavlov.core.models.lr_scheduled_tf_model import LRScheduledTFModel
-from deeppavlov.models.squad.utils import dot_attention, simple_attention, PtrNet, CudnnGRU, CudnnCompatibleGRU
 from deeppavlov.core.common.check_gpu import check_gpu_existence
+from deeppavlov.core.common.registry import register
 from deeppavlov.core.layers.tf_layers import cudnn_bi_gru, variational_dropout
-from deeppavlov.core.common.log import get_logger
+from deeppavlov.core.models.tf_model import LRScheduledTFModel
+from deeppavlov.models.squad.utils import dot_attention, simple_attention, PtrNet, CudnnGRU, CudnnCompatibleGRU
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 
 @register('squad_model')
@@ -51,6 +51,7 @@ class SquadModel(LRScheduledTFModel):
         min_learning_rate: minimal learning rate, is used in learning rate decay
         noans_token: boolean, flags whether to use special no_ans token to make model able not to answer on question
     """
+
     def __init__(self, word_emb: np.ndarray, char_emb: np.ndarray, context_limit: int = 450, question_limit: int = 150,
                  char_limit: int = 16, train_char_emb: bool = True, char_hidden_size: int = 100,
                  encoder_hidden_size: int = 75, attention_hidden_size: int = 75, keep_prob: float = 0.7,
@@ -217,8 +218,8 @@ class SquadModel(LRScheduledTFModel):
         self.cc_ph = tf.placeholder(shape=(None, None, self.char_limit), dtype=tf.int32, name='cc_ph')
         self.q_ph = tf.placeholder(shape=(None, None), dtype=tf.int32, name='q_ph')
         self.qc_ph = tf.placeholder(shape=(None, None, self.char_limit), dtype=tf.int32, name='qc_ph')
-        self.y1_ph = tf.placeholder(shape=(None, ), dtype=tf.int32, name='y1_ph')
-        self.y2_ph = tf.placeholder(shape=(None, ), dtype=tf.int32, name='y2_ph')
+        self.y1_ph = tf.placeholder(shape=(None,), dtype=tf.int32, name='y1_ph')
+        self.y2_ph = tf.placeholder(shape=(None,), dtype=tf.int32, name='y2_ph')
 
         self.lear_rate_ph = tf.placeholder_with_default(0.0, shape=[], name='learning_rate')
         self.keep_prob_ph = tf.placeholder_with_default(1.0, shape=[], name='keep_prob_ph')
@@ -276,7 +277,7 @@ class SquadModel(LRScheduledTFModel):
         feed_dict = self._build_feed_dict(c_tokens, c_chars, q_tokens, q_chars, y1s, y2s)
         loss, _, lear_rate = self.sess.run([self.loss, self.train_op, self.lear_rate_ph],
                                            feed_dict=feed_dict)
-        report = {'loss': loss, 'learning_rate': float(lear_rate)}
+        report = {'loss': loss, 'learning_rate': float(lear_rate), 'momentum': self.get_momentum()}
         return report
 
     def __call__(self, c_tokens: np.ndarray, c_chars: np.ndarray, q_tokens: np.ndarray, q_chars: np.ndarray,

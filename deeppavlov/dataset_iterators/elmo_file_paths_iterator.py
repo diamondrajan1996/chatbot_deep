@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Iterator, Optional, Dict, List, Union
+from logging import getLogger
 from pathlib import Path
+from typing import Tuple, Iterator, Optional, Dict, List, Union
 
 from deeppavlov.core.common.registry import register
-from deeppavlov.dataset_iterators.file_paths_iterator import FilePathsIterator
-from deeppavlov.core.common.log import get_logger
-from deeppavlov.core.data.utils import chunk_generator
-from deeppavlov.models.preprocessors.str_utf8_encoder import StrUTF8Encoder
 from deeppavlov.core.data.simple_vocab import SimpleVocabulary
+from deeppavlov.core.data.utils import chunk_generator
+from deeppavlov.dataset_iterators.file_paths_iterator import FilePathsIterator
+from deeppavlov.models.preprocessors.str_utf8_encoder import StrUTF8Encoder
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('elmo_file_paths_iterator')
@@ -91,15 +91,15 @@ class ELMoFilePathsIterator(FilePathsIterator):
         reversed_token_ids = list(reversed(token_ids))
         token_ids = token_ids[1:]
         reversed_token_ids = reversed_token_ids[1:]
-        
+
         return char_ids, reversed_char_ids, token_ids, reversed_token_ids
-            
+
     def _line_generator(self, shard_generator):
         for shard in shard_generator:
             line_generator = chunk_generator(shard, 1)
             for line in line_generator:
                 line = line[0]
-                char_ids, reversed_char_ids, token_ids, reversed_token_ids =\
+                char_ids, reversed_char_ids, token_ids, reversed_token_ids = \
                     self._line2ids(line)
                 yield char_ids, reversed_char_ids, token_ids, reversed_token_ids
 
@@ -124,13 +124,13 @@ class ELMoFilePathsIterator(FilePathsIterator):
 
                         sti.clear()
                         sti.extend(_s)
-                char_ids, reversed_char_ids, token_ids, reversed_token_ids =\
+                char_ids, reversed_char_ids, token_ids, reversed_token_ids = \
                     zip(*batch)
                 yield char_ids, reversed_char_ids, token_ids, reversed_token_ids
         except StopIteration:
             pass
 
-    def gen_batches(self, batch_size: int, data_type: str = 'train', shuffle: Optional[bool] = None)\
+    def gen_batches(self, batch_size: int, data_type: str = 'train', shuffle: Optional[bool] = None) \
             -> Iterator[Tuple[str, str]]:
         if shuffle is None:
             shuffle = self.shuffle
@@ -141,7 +141,6 @@ class ELMoFilePathsIterator(FilePathsIterator):
 
         if data_type == 'train':
             unroll_steps = self.unroll_steps
-            batch_size = batch_size
             n_gpus = self.n_gpus
         else:
             unroll_steps = 1

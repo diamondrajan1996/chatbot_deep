@@ -15,9 +15,8 @@ from typing import Union, List
 
 from nltk.tokenize.moses import MosesDetokenizer, MosesTokenizer
 
-from deeppavlov.core.models.component import Component
 from deeppavlov.core.common.registry import register
-from . import nltk_tokenizer
+from deeppavlov.core.models.component import Component
 
 
 @register("nltk_moses_tokenizer")
@@ -33,7 +32,7 @@ class NLTKMosesTokenizer(Component):
         escape: whether escape characters for use in html markup
     """
 
-    def __init__(self, escape: bool=False, *args, **kwargs):
+    def __init__(self, escape: bool = False, *args, **kwargs):
         self.escape = escape
         self.tokenizer = MosesTokenizer()
         self.detokenizer = MosesDetokenizer()

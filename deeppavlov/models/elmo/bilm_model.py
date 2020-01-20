@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 import numpy as np
-
+import tensorflow as tf
 
 DTYPE = 'float32'
 DTYPE_INT = 'int64'
@@ -49,6 +48,7 @@ class LanguageModel(object):
         'dim' is the hidden state size.
         Set 'dim' == 'projection_dim' to skip a projection layer.
     """
+
     def __init__(self, options, is_training):
         self.options = options
         self.is_training = is_training
@@ -286,14 +286,14 @@ class LanguageModel(object):
                                              W_carry, b_carry,
                                              W_transform, b_transform)
                 self.token_embedding_layers.append(tf.reshape(embedding,
-                                                   [batch_size, unroll_steps, highway_dim]))
+                                                              [batch_size, unroll_steps, highway_dim]))
 
         # finally project down to projection dim if needed
         if use_proj:
             embedding = tf.matmul(embedding, W_proj_cnn) + b_proj_cnn
             if self.bidirectional:
                 embedding_reverse = tf.matmul(embedding_reverse, W_proj_cnn) \
-                    + b_proj_cnn
+                                    + b_proj_cnn
             self.token_embedding_layers.append(
                 tf.reshape(embedding, [batch_size, unroll_steps, projection_dim])
             )

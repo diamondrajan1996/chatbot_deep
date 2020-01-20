@@ -14,7 +14,7 @@
 
 import re
 import string
-from typing import List, Union
+from typing import List
 
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.component import Component
@@ -25,6 +25,7 @@ class DirtyCommentsPreprocessor(Component):
     """
     Class implements preprocessing of english texts with low level of literacy such as comments
     """
+
     def __init__(self, remove_punctuation: bool = True, *args, **kwargs):
         self.remove_punctuation = remove_punctuation
 
