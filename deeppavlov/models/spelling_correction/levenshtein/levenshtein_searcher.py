@@ -7,6 +7,29 @@ from sortedcontainers import SortedListWithKey
 from .tabled_trie import Trie, make_trie
 
 
+def make_default_operation_costs(alphabet, allow_spaces=False):
+    """
+    sets 1.0 cost for every replacement, insertion, deletion and transposition
+    """
+    operation_costs = dict()
+    operation_costs[""] = {c: 1.0 for c in list(alphabet) + [' ']}
+    for a in alphabet:
+        current_costs = {c: 1.0 for c in alphabet}
+        current_costs[a] = 0.0
+        current_costs[""] = 1.0
+        if allow_spaces:
+            current_costs[" "] = 1.0
+        operation_costs[a] = current_costs
+    # транспозиции
+    for a, b in itertools.permutations(alphabet, 2):
+        operation_costs[a + b] = {b + a: 1.0}
+    # пробелы
+    if allow_spaces:
+        operation_costs[" "] = {c: 1.0 for c in alphabet}
+        operation_costs[" "][""] = 1.0
+    return operation_costs
+    
+
 class LevenshteinSearcher:
     """
     Класс для поиска близких слов
