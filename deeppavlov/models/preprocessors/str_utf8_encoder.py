@@ -14,20 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, List, Tuple
-from itertools import chain
-from pathlib import Path
 from collections import Counter, OrderedDict
+from itertools import chain
+from logging import getLogger
+from typing import Union, List, Tuple
 
 import numpy as np
 from overrides import overrides
 
-from deeppavlov.core.common.registry import register
 from deeppavlov.core.common.errors import ConfigError
-from deeppavlov.core.common.log import get_logger
+from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.estimator import Estimator
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 StrUTF8EncoderInfo = Union[List[str], List['StrUTF8EncoderInfo']]
 
@@ -45,7 +44,8 @@ class StrUTF8Encoder(Estimator):
         bos: Name of a special token of the begin of a sentence.
         eos: Name of a special token of the end of a sentence.
     """
-    def __init__(self, 
+
+    def __init__(self,
                  max_word_length: int = 50,
                  pad_special_char_use: bool = False,
                  word_boundary_special_char_use: bool = False,
@@ -57,9 +57,9 @@ class StrUTF8Encoder(Estimator):
         super().__init__(**kwargs)
 
         if word_boundary_special_char_use and max_word_length < 3:
-                    raise ConfigError(f"`max_word_length` should be more than 3!")
+            raise ConfigError(f"`max_word_length` should be more than 3!")
         if max_word_length < 1:
-                    raise ConfigError(f"`max_word_length` should be more than 1!")
+            raise ConfigError(f"`max_word_length` should be more than 1!")
 
         self._max_word_length = max_word_length
         self._reverse = reversed_sentense_tokens
@@ -86,12 +86,12 @@ class StrUTF8Encoder(Estimator):
             else:
                 code = indx
             if self._pad_special_char_use:
-                code = np.pad(code, (0, self._max_word_length - code.shape[0]), 'constant', 
+                code = np.pad(code, (0, self._max_word_length - code.shape[0]), 'constant',
                               constant_values=(self.pad_char))
             else:
                 pass
             return code
-        
+
         self.bos_chars = _make_bos_eos(self.bos_char)
         self.eos_chars = _make_bos_eos(self.eos_char)
 
@@ -150,14 +150,14 @@ class StrUTF8Encoder(Estimator):
         with self.save_path.open('wt', encoding='utf8') as f:
             for token in self._word_char_ids.keys():
                 f.write('{}\n'.format(token))
-            
+
     @overrides
     def fit(self, *args) -> None:
         words = chain(*args)
         # filter(None, <>) -- to filter empty words
         freqs = Counter(filter(None, chain(*words)))
         for token, _ in freqs.most_common():
-            if not(token in self._word_char_ids):
+            if not (token in self._word_char_ids):
                 self._word_char_ids[token] = self._convert_word_to_char_ids(token)
 
     def _convert_word_to_char_ids(self, word):

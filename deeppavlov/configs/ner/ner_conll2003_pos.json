@@ -166,7 +166,12 @@
     "val_every_n_epochs": 1,
 
     "log_every_n_epochs": 1,
-    "show_examples": false
+    "show_examples": false,
+    "class_name": "nn_trainer",
+    "evaluation_targets": [
+      "valid",
+      "test"
+    ]
   },
   "metadata": {
     "variables": {
@@ -178,10 +183,6 @@
       "{DEEPPAVLOV_PATH}/requirements/gensim.txt",
       "{DEEPPAVLOV_PATH}/requirements/tf.txt"
     ],
-    "labels": {
-      "telegram_utils": "NERCoNLL2003Model",
-      "server_utils": "NER"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/embeddings/glove.6B.100d.txt",
@@ -189,6 +190,4 @@
       }
     ]
   }
-
 }
-

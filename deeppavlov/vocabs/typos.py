@@ -14,19 +14,18 @@
 
 import shutil
 from collections import defaultdict
+from logging import getLogger
 from pathlib import Path
 
 import requests
 from lxml import html
 
 from deeppavlov.core.commands.utils import expand_path
+from deeppavlov.core.common.file import load_pickle, save_pickle
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.utils import is_done, mark_done
-from deeppavlov.core.common.file import load_pickle, save_pickle
-from deeppavlov.core.common.log import get_logger
 
-
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('static_dictionary')
@@ -46,7 +45,7 @@ class StaticDictionary:
         words_trie: trie structure of all the words
     """
 
-    def __init__(self, data_dir: [Path, str]='', *args, dictionary_name: str='dictionary', **kwargs):
+    def __init__(self, data_dir: [Path, str] = '', *args, dictionary_name: str = 'dictionary', **kwargs):
         data_dir = expand_path(data_dir) / dictionary_name
 
         alphabet_path = data_dir / 'alphabet.pkl'
@@ -72,7 +71,7 @@ class StaticDictionary:
             words_trie = defaultdict(set)
             for word in words:
                 for i in range(len(word)):
-                    words_trie[word[:i]].add(word[:i+1])
+                    words_trie[word[:i]].add(word[:i + 1])
                 words_trie[word] = set()
             words_trie = {k: sorted(v) for k, v in words_trie.items()}
 
@@ -114,7 +113,7 @@ class RussianWordsVocab(StaticDictionary):
         words_trie: trie structure of all the words
     """
 
-    def __init__(self, data_dir: [Path, str]='', *args, **kwargs):
+    def __init__(self, data_dir: [Path, str] = '', *args, **kwargs):
         kwargs['dictionary_name'] = 'russian_words_vocab'
         super().__init__(data_dir, *args, **kwargs)
 
@@ -141,7 +140,8 @@ class Wiki100KDictionary(StaticDictionary):
         words_set: set of all the words
         words_trie: trie structure of all the words
     """
-    def __init__(self, data_dir: [Path, str]='', *args, **kwargs):
+
+    def __init__(self, data_dir: [Path, str] = '', *args, **kwargs):
         kwargs['dictionary_name'] = 'wikipedia_100K_vocab'
         super().__init__(data_dir, *args, **kwargs)
 

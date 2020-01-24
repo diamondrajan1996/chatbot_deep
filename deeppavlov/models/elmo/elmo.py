@@ -14,23 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List
 import copy
 import json
+from logging import getLogger
+from typing import Optional, List
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from overrides import overrides
 
-from deeppavlov.core.models.nn_model import NNModel
-from deeppavlov.core.common.registry import register
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.commands.utils import expand_path
+from deeppavlov.core.common.registry import register
+from deeppavlov.core.models.nn_model import NNModel
 from deeppavlov.models.elmo.bilm_model import LanguageModel
-from deeppavlov.models.elmo.train_utils import average_gradients, clip_grads, safely_str2int, dump_weights
 from deeppavlov.models.elmo.elmo2tfhub import export2hub
+from deeppavlov.models.elmo.train_utils import average_gradients, clip_grads, safely_str2int, dump_weights
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('elmo_model')
@@ -111,18 +111,18 @@ class ELMo(NNModel):
 
 
     LM model pre-trained on `ru-news` dataset ( lines = 63M, tokens = 946M, size = 12GB ), model is available by
-    :config:`elmo-lm-ready4fine-tuning-ru-news </elmo/elmo-lm-ready4fine-tuning-ru-news.json>` configuration file
-    or :config:`elmo-lm-ready4fine-tuning-ru-news-simple </elmo/elmo-lm-ready4fine-tuning-ru-news-simple.json>`
+    :config:`elmo_lm_ready4fine_tuning_ru_news </elmo/elmo_lm_ready4fine_tuning_ru_news.json>` configuration file
+    or :config:`elmo_lm_ready4fine_tuning_ru_news_simple </elmo/elmo_lm_ready4fine_tuning_ru_news_simple.json>`
     configuration file.
 
     LM model pre-trained on `ru-twitter` dataset ( lines = 104M, tokens = 810M, size = 8.5GB ), model is available by
-    :config:`elmo-lm-ready4fine-tuning-ru-twitter </elmo/elmo-lm-ready4fine-tuning-ru-twitter.json>` configuration file 
-    or :config:`elmo-lm-ready4fine-tuning-ru-twitter-simple </elmo/elmo-lm-ready4fine-tuning-ru-twitter-simple.json>`
+    :config:`elmo_lm_ready4fine_tuning_ru_twitter </elmo/elmo_lm_ready4fine_tuning_ru_twitter.json>` configuration file
+    or :config:`elmo_lm_ready4fine_tuning_ru_twitter_simple </elmo/elmo_lm_ready4fine_tuning_ru_twitter_simple.json>`
     configuration file.
 
     LM model pre-trained on `ru-wiki` dataset ( lines = 1M, tokens = 386M, size = 5GB ), model is available by
-    :config:`elmo-lm-ready4fine-tuning-ru-wiki </elmo/elmo-lm-ready4fine-tuning-ru-wiki.json>` configuration file 
-    or :config:`elmo-lm-ready4fine-tuning-ru-wiki-simple </elmo/elmo-lm-ready4fine-tuning-ru-wiki-simple.json>`
+    :config:`elmo_lm_ready4fine_tuning_ru_wiki </elmo/elmo_lm_ready4fine_tuning_ru_wiki.json>` configuration file
+    or :config:`elmo_lm_ready4fine_tuning_ru_wiki_simple </elmo/elmo_lm_ready4fine_tuning_ru_wiki_simple.json>`
     configuration file.
 
     `simple` configuration file is a configuration of a model without special tags of output
@@ -131,7 +131,7 @@ class ELMo(NNModel):
     .. note::
 
         You need to download about **4 GB** also by default about **32 GB** of RAM and **10 GB** of GPU memory
-        required to running the :config:`elmo-lm-ready4fine-tuning-ru-* </elmo/>`
+        required to running the :config:`elmo_lm_ready4fine_tuning_ru_* </elmo/>`
         on one GPU.
 
     After training you can use ``{MODELS_PATH}/elmo_model/saves/hubs/tf_hub_model_epoch_n_*/``
@@ -153,14 +153,14 @@ class ELMo(NNModel):
 
     .. code:: bash
 
-        python -m deeppavlov install elmo-1b-benchmark_test
+        python -m deeppavlov install elmo_1b_benchmark_test
         
     Examples:
         For a quick start, you can run test training of the test model on small data by this command from bash:
 
         .. code:: bash
 
-            python -m deeppavlov train deeppavlov/configs/elmo/elmo-1b-benchmark_test.json -d
+            python -m deeppavlov train deeppavlov/configs/elmo/elmo_1b_benchmark_test.json -d
 
         To download the prepared `1 Billion Word Benchmark dataset <http://www.statmt.org/lm-benchmark/>`__ and
         start a training model use this command from bash:
@@ -168,11 +168,11 @@ class ELMo(NNModel):
         .. note::
 
             You need to download about **2 GB** also by default about **10 GB** of RAM and **10 GB** of GPU memory
-            required to running :config:`elmo-1b-benchmark <elmo/elmo-1b-benchmark.json>` on one GPU.
+            required to running :config:`elmo_1b_benchmark <elmo/elmo_1b_benchmark.json>` on one GPU.
 
         .. code:: bash
 
-            python -m deeppavlov train deeppavlov/configs/elmo/elmo-1b-benchmark.json -d
+            python -m deeppavlov train deeppavlov/configs/elmo/elmo_1b_benchmark.json -d
 
         To fine-tune ELMo as LM model on `1 Billion Word Benchmark dataset <http://www.statmt.org/lm-benchmark/>`__
         use commands from bash :
@@ -180,7 +180,7 @@ class ELMo(NNModel):
         .. code:: bash
 
             # download the prepared 1 Billion Word Benchmark dataset
-            python -m deeppavlov download deeppavlov/configs/elmo/elmo-1b-benchmark.json
+            python -m deeppavlov download deeppavlov/configs/elmo/elmo_1b_benchmark.json
             # copy model checkpoint, network configuration, vocabulary of pre-trained LM model
             mkdir -p ${MODELS_PATH}/elmo-1b-benchmark/saves/epochs/0
             cp my_ckpt.data-00000-of-00001 ${MODELS_PATH}/elmo-1b-benchmark/saves/epochs/0/model.data-00000-of-00001
@@ -190,7 +190,7 @@ class ELMo(NNModel):
             cp my_options.json ${MODELS_PATH}/elmo-1b-benchmark/options.json
             cp my_vocab {MODELS_PATH}/elmo-1b-benchmark/vocab-2016-09-10.txt
             # start a fine-tuning
-            python -m deeppavlov train deeppavlov/configs/elmo/elmo-1b-benchmark.json
+            python -m deeppavlov train deeppavlov/configs/elmo/elmo_1b_benchmark.json
 
         After training you can use the ELMo model from tf_hub wrapper by
         `TensorFlow Hub <https://www.tensorflow.org/hub/overview>`__ or by
@@ -214,7 +214,7 @@ class ELMo(NNModel):
                  unroll_steps: Optional[int] = None,
                  n_tokens_vocab: Optional[int] = None,
                  lstm: Optional[dict] = None,
-                 dropout: Optional[float] = None,   # Regularization
+                 dropout: Optional[float] = None,  # Regularization
                  n_negative_samples_batch: Optional[int] = None,  # Train options
                  all_clip_norm_val: Optional[float] = None,
                  initial_accumulator_value: float = 1.0,
@@ -230,10 +230,10 @@ class ELMo(NNModel):
                  **kwargs) -> None:
 
         # ================ Checking input args =================
-        if not(options_json_path or (char_cnn and bidirectional and unroll_steps
-                                     and n_tokens_vocab and lstm and dropout and
-                                     n_negative_samples_batch and all_clip_norm_val
-                                     )):
+        if not (options_json_path or (char_cnn and bidirectional and unroll_steps
+                                      and n_tokens_vocab and lstm and dropout and
+                                      n_negative_samples_batch and all_clip_norm_val
+        )):
             raise Warning('Use options_json_path or/and direct params to set net architecture.')
         self.options = self._load_options(options_json_path)
         self._update_arch_options(char_cnn, bidirectional, unroll_steps, n_tokens_vocab, lstm)
@@ -250,6 +250,7 @@ class ELMo(NNModel):
 
         self.train_options = {}
         self.valid_options = {'batch_size': 256, 'unroll_steps': 1, 'n_gpus': 1}
+        self.model_mode = ''
 
         tf.set_random_seed(seed)
         np.random.seed(seed)
@@ -272,6 +273,9 @@ class ELMo(NNModel):
         self._build_model(train=False, epoch=load_epoch_num)
 
         self.save()
+        # after building the model and saving to the specified save path
+        # change the way to load intermediate checkpoints
+        self.load_path = self.save_path
 
     def _load_options(self, options_json_path):
         if options_json_path:
@@ -302,7 +306,7 @@ class ELMo(NNModel):
         if all_clip_norm_val is not None:
             self.options['all_clip_norm_val'] = all_clip_norm_val
 
-    def _get_epoch_from(self, epoch_load_path, default = 0):
+    def _get_epoch_from(self, epoch_load_path, default=0):
         path = self.load_path
         path = path.parent / epoch_load_path
         candidates = path.resolve().glob('[0-9]*')
@@ -311,7 +315,7 @@ class ELMo(NNModel):
         epoch_num = max(candidates, default=default)
         return epoch_num
 
-    def _build_graph(self, graph, train = True):
+    def _build_graph(self, graph, train=True):
         with graph.as_default():
             with tf.device('/cpu:0'):
                 init_step = 0
@@ -413,8 +417,8 @@ class ELMo(NNModel):
     def _fill_feed_dict(self,
                         char_ids_batches,
                         reversed_char_ids_batches,
-                        token_ids_batches = None,
-                        reversed_token_ids_batches = None):
+                        token_ids_batches=None,
+                        reversed_token_ids_batches=None):
         # init state tensors
         feed_dict = {t: v for t, v in zip(self.init_state_tensors, self.init_state_values)}
 
@@ -461,6 +465,7 @@ class ELMo(NNModel):
             path.resolve()
             log.info(f'[loading {epoch} epoch]')
 
+        # path.parent.mkdir(parents=True, exist_ok=True)
         path = str(path)
 
         # Check presence of the model files
@@ -470,7 +475,7 @@ class ELMo(NNModel):
                 saver = tf.train.Saver()
                 saver.restore(self.sess, path)
         else:
-            log.info(f'[A checkpoint not found in  {path}]') 
+            log.info(f'[A checkpoint not found in  {path}]')
 
     @overrides
     def save(self, epoch: Optional[int] = None) -> None:
@@ -535,20 +540,22 @@ class ELMo(NNModel):
                                                                                   train=False)
 
         with self.graph.as_default():
-            self.init_state_values, self.init_state_tensors, self.final_state_tensors =\
+            self.init_state_values, self.init_state_tensors, self.final_state_tensors = \
                 self._init_session()
         self.load(epoch)
 
     def process_event(self, event_name, data):
-        if event_name == 'after_validation':
+        if event_name == 'before_train' and self.model_mode != 'train':
             self._build_model(train=True)
-        elif event_name == 'after_epoch':
+            self.model_mode = 'train'
+        elif event_name == 'before_validation' and self.model_mode != 'validation':
             epoch = self.save_epoch_num + int(data['epochs_done'])
             self.save(epoch)
             self.save()
             self.elmo_export(epoch)
 
             self._build_model(train=False)
+            self.model_mode = 'validation'
 
     def elmo_export(self, epoch: Optional[int] = None) -> None:
         """
@@ -591,3 +598,4 @@ class ELMo(NNModel):
         if hasattr(self, 'sess'):
             for k in list(self.sess.graph.get_all_collection_keys()):
                 self.sess.graph.clear_collection(k)
+        super().destroy()

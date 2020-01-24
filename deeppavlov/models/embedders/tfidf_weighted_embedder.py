@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
+from typing import List, Union, Optional, Tuple
+
 import numpy as np
-
 from overrides import overrides
-from typing import List, Union, Optional, Tuple, Iterator
 
-from deeppavlov.core.common.errors import ConfigError
 from deeppavlov.core.commands.utils import expand_path
+from deeppavlov.core.common.errors import ConfigError
 from deeppavlov.core.common.registry import register
-from deeppavlov.core.models.component import Component
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.data.utils import zero_pad
+from deeppavlov.core.models.component import Component
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('tfidf_weighted')
@@ -197,7 +197,8 @@ class TfidfWeightedEmbedder(Component):
         if self.tags_vocab:
             if tags_batch is None:
                 raise ConfigError("TfidfWeightedEmbedder got 'tags_vocab_path' but __call__ did not get tags_batch.")
-            batch = [self._tags_encode(sample, tags_sample, mean=mean) for sample, tags_sample in zip(batch, tags_batch)]
+            batch = [self._tags_encode(sample, tags_sample, mean=mean) for sample, tags_sample in
+                     zip(batch, tags_batch)]
         else:
             if tags_batch:
                 raise ConfigError("TfidfWeightedEmbedder got tags batch, but 'tags_vocab_path' is empty.")
@@ -301,6 +302,3 @@ class TfidfWeightedEmbedder(Component):
             embedded_tokens = np.array([weights[i] * embedded_tokens[i] for i in range(len(tokens))])
 
         return embedded_tokens
-
-    def destroy(self):
-        pass

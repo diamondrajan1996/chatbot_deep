@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Any, Optional, Union
 
 from deeppavlov.core.common.registry import register
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.models.component import Component
 from deeppavlov.dataset_iterators.sqlite_iterator import SQLiteDataIterator
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 
 @register('wiki_sqlite_vocab')
@@ -51,7 +51,7 @@ class WikiSQLiteVocab(SQLiteDataIterator, Component):
         """
         all_contents = []
         if not doc_ids:
-            logger.warn('No doc_ids are provided in WikiSqliteVocab, return all docs')
+            logger.warning('No doc_ids are provided in WikiSqliteVocab, return all docs')
             doc_ids = [self.get_doc_ids()]
 
         for ids in doc_ids:

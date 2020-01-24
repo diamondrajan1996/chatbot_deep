@@ -25,7 +25,7 @@
       {
         "class_name": "hashing_tfidf_vectorizer",
         "id": "vectorizer",
-        "fit_on_batch": [
+        "fit_on": [
           "docs",
           "doc_ids",
           "doc_nums"
@@ -70,9 +70,9 @@
     ]
   },
   "train": {
-    "validate_best": false,
-    "test_best": false,
-    "batch_size": 10000
+    "batch_size": 10000,
+    "evaluation_targets": [],
+    "class_name": "fit_trainer"
   },
   "metadata": {
     "variables": {
@@ -84,9 +84,6 @@
       "{DEEPPAVLOV_PATH}/requirements/spacy.txt",
       "{DEEPPAVLOV_PATH}/requirements/en_core_web_sm.txt"
     ],
-    "labels": {
-      "server_utils": "Ranker"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/datasets/wikipedia/enwiki_test.tar.gz",

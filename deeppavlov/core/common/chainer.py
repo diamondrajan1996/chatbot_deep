@@ -13,17 +13,22 @@
 # limitations under the License.
 
 import pickle
-from typing import Union, Tuple, List
+from itertools import islice
+from logging import getLogger
+from types import FunctionType
+from typing import Union, Tuple, List, Optional, Hashable, Reversible
 
 from deeppavlov.core.common.errors import ConfigError
 from deeppavlov.core.models.component import Component
 from deeppavlov.core.models.nn_model import NNModel
 from deeppavlov.core.models.serializable import Serializable
 
+log = getLogger(__name__)
+
 
 class Chainer(Component):
     """
-    Builds an agent/component pipeline from heterogeneous components (Rule-based/ML/DL). It allows to train
+    Builds a component pipeline from heterogeneous components (Rule-based/ML/DL). It allows to train
     and infer models in a pipeline as a whole.
 
     Attributes:
@@ -41,6 +46,7 @@ class Chainer(Component):
         out_params: names of pipeline inference outputs
         in_y: names of additional inputs for pipeline training and evaluation modes
     """
+
     def __init__(self, in_x: Union[str, list] = None, out_params: Union[str, list] = None,
                  in_y: Union[str, list] = None, *args, **kwargs) -> None:
         self.pipe: List[Tuple[Tuple[List[str], List[str]], List[str], Component]] = []
@@ -58,10 +64,68 @@ class Chainer(Component):
         self.forward_map = set(self.in_x)
         self.train_map = self.forward_map.union(self.in_y)
 
+        self._components_dict = {}
+
         self.main = None
 
-    def append(self, component: Component, in_x: [str, list, dict]=None, out_params: [str, list]=None,
-               in_y: [str, list, dict]=None, main=False):
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            in_params, out_params, component = self.train_pipe[item]
+            return component
+        return self._components_dict[item]
+
+    def _ipython_key_completions_(self):
+        return self._components_dict.keys()
+
+    def __repr__(self):
+        reversed_components_dict = {v: f'{repr(k)}: ' for k, v in self._components_dict.items()
+                                    if isinstance(v, Hashable)}
+
+        components_list = []
+        for in_params, out_params, component in self.train_pipe:
+            component_repr = repr(component)
+            if isinstance(component, Hashable) and component in reversed_components_dict:
+                component_repr = reversed_components_dict[component] + component_repr
+            else:
+                for k, v in self._components_dict.items():
+                    if v is component:
+                        component_repr = f'{k}: {component_repr}'
+                        break
+            components_list.append(component_repr)
+
+        return f'Chainer[{", ".join(components_list)}]'
+
+    def _repr_pretty_(self, p, cycle):
+        """method that defines ``Struct``'s pretty printing rules for iPython
+
+        Args:
+            p (IPython.lib.pretty.RepresentationPrinter): pretty printer object
+            cycle (bool): is ``True`` if pretty detected a cycle
+        """
+        if cycle:
+            p.text('Chainer(...)')
+        else:
+            with p.group(8, 'Chainer[', ']'):
+                reversed_components_dict = {v: k for k, v in self._components_dict.items()
+                                            if isinstance(v, Hashable)}
+                # p.pretty(self.__prepare_repr())
+                for i, (in_params, out_params, component) in enumerate(self.train_pipe):
+                    if i > 0:
+                        p.text(',')
+                        p.breakable()
+                    if isinstance(component, Hashable) and component in reversed_components_dict:
+                        p.pretty(reversed_components_dict[component])
+                        p.text(': ')
+                    else:
+                        for k, v in self._components_dict.items():
+                            if v is component:
+                                p.pretty(k)
+                                p.text(': ')
+                                break
+                    p.pretty(component)
+
+    def append(self, component: Union[Component, FunctionType], in_x: [str, list, dict] = None,
+               out_params: [str, list] = None, in_y: [str, list, dict] = None, main: bool = False):
         if isinstance(in_x, str):
             in_x = [in_x]
         if isinstance(in_y, str):
@@ -87,9 +151,9 @@ class Chainer(Component):
 
             component: NNModel
             main = True
-            assert self.train_map.issuperset(in_x+in_y), ('Arguments {} are expected but only {} are set'
-                                                          .format(in_x+in_y, self.train_map))
-            preprocessor = Chainer(self.in_x, in_x+in_y, self.in_y)
+            assert self.train_map.issuperset(in_x + in_y), ('Arguments {} are expected but only {} are set'
+                                                            .format(in_x + in_y, self.train_map))
+            preprocessor = Chainer(self.in_x, in_x + in_y, self.in_y)
             for (t_in_x_keys, t_in_x), t_out, t_component in self.train_pipe:
                 if t_in_x_keys:
                     t_in_x = dict(zip(t_in_x_keys, t_in_x))
@@ -97,7 +161,7 @@ class Chainer(Component):
 
             def train_on_batch(*args, **kwargs):
                 preprocessed = preprocessor.compute(*args, **kwargs)
-                if len(in_x+in_y) == 1:
+                if len(in_x + in_y) == 1:
                     preprocessed = [preprocessed]
                 if keys:
                     return component.train_on_batch(**dict(zip(keys, preprocessed)))
@@ -174,11 +238,47 @@ class Chainer(Component):
             res = res[0]
         return res
 
-    def get_main_component(self) -> Serializable:
-        return self.main or self.pipe[-1][-1]
+    def batched_call(self, *args: Reversible, batch_size: int = 16) -> Union[list, Tuple[list, ...]]:
+        """
+        Partitions data into mini-batches and applies :meth:`__call__` to each batch.
+
+        Args:
+            args: input data, each element of the data corresponds to a single model inputs sequence.
+            batch_size: the size of a batch.
+
+        Returns:
+            the model output as if the data was passed to the :meth:`__call__` method.
+        """
+        args = [iter(arg) for arg in args]
+        answer = [[] for _ in self.out_params]
+
+        while True:
+            batch = [list(islice(arg, batch_size)) for arg in args]
+            if not any(batch):  # empty batch, reached the end
+                break
+
+            curr_answer = self.__call__(*batch)
+            if len(self.out_params) == 1:
+                curr_answer = [curr_answer]
+
+            for y, curr_y in zip(answer, curr_answer):
+                y.extend(curr_y)
+
+        if len(self.out_params) == 1:
+            answer = answer[0]
+        return answer
+
+    def get_main_component(self) -> Optional[Serializable]:
+        try:
+            return self.main or self.pipe[-1][-1]
+        except IndexError:
+            log.warning('Cannot get a main component for an empty chainer')
+            return None
 
     def save(self) -> None:
-        self.get_main_component().save()
+        main_component = self.get_main_component()
+        if isinstance(main_component, Serializable):
+            main_component.save()
 
     def load(self) -> None:
         for in_params, out_params, component in self.train_pipe:
@@ -191,19 +291,24 @@ class Chainer(Component):
                 component.reset()
 
     def destroy(self):
-        for in_params, out_params, component in self.train_pipe:
-            if callable(getattr(component, 'destroy', None)):
-                component.destroy()
-        self.pipe.clear()
-        self.train_pipe.clear()
+        if hasattr(self, 'train_pipe'):
+            for in_params, out_params, component in self.train_pipe:
+                if callable(getattr(component, 'destroy', None)):
+                    component.destroy()
+            self.train_pipe.clear()
+        if hasattr(self, 'pipe'):
+            self.pipe.clear()
+        super().destroy()
 
     def serialize(self) -> bytes:
         data = []
         for in_params, out_params, component in self.train_pipe:
-            data.append(component.serialize())
-        return pickle.dumps(data)
+            serialized = component.serialize() if isinstance(component, Component) else None
+            data.append(serialized)
+        return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data: bytes) -> None:
         data = pickle.loads(data)
-        for in_params, out_params, component in self.train_pipe:
-            component.deserialize(data)
+        for (in_params, out_params, component), component_data in zip(self.train_pipe, data):
+            if isinstance(component, Component):
+                component.deserialize(component_data)

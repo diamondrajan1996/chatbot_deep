@@ -89,18 +89,14 @@
     ]
   },
   "train": {
-    "validate_best": false,
-    "test_best": false
+    "evaluation_targets": [],
+    "class_name": "fit_trainer"
   },
   "metadata": {
     "variables": {
       "ROOT_PATH": "~/.deeppavlov",
       "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
       "MODELS_PATH": "{ROOT_PATH}/models"
-    },
-    "labels": {
-      "telegram_utils": "EcommerceSkill",
-      "server_utils": "EcommerceSkill"
     },
     "requirements": [
       "{DEEPPAVLOV_PATH}/requirements/spacy.txt",

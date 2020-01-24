@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
+from typing import List, Union, Iterable
+
 import numpy as np
 
 from deeppavlov.core.common.errors import ConfigError
-from deeppavlov.core.models.component import Component
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.utils import zero_pad
+from deeppavlov.core.models.component import Component
 
 
 @register('one_hotter')
@@ -32,6 +33,7 @@ class OneHotter(Component):
         pad_zeros: whether to pad elements of batch with zeros
         single_vector: whether to return one vector for the sample (sum of each one-hotted vectors)
     """
+
     def __init__(self, depth: int, pad_zeros: bool = False,
                  single_vector=False, *args, **kwargs):
         self._depth = depth
@@ -55,7 +57,7 @@ class OneHotter(Component):
         one_hotted_batch = []
 
         for utt in batch:
-            if isinstance(utt, list):
+            if isinstance(utt, Iterable):
                 one_hotted_utt = self._to_one_hot(utt, self._depth)
             elif isinstance(utt, int):
                 if self._pad_zeros or self.single_vector:
@@ -76,5 +78,5 @@ class OneHotter(Component):
     def _to_one_hot(x, n):
         b = np.zeros([len(x), n], dtype=np.float32)
         for q, tok in enumerate(x):
-            b[q, tok] = 1
+            b[q, int(tok)] = 1
         return b

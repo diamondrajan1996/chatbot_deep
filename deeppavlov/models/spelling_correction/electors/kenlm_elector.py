@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from pathlib import Path
 from typing import List, Tuple
 
@@ -20,10 +21,8 @@ import kenlm
 from deeppavlov.core.commands.utils import expand_path
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.models.component import Component
-from deeppavlov.core.common.log import get_logger
 
-
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 
 @register('kenlm_elector')
@@ -38,7 +37,8 @@ class KenlmElector(Component):
         lm: kenlm object
         beam_size: beam size for highest probability search
     """
-    def __init__(self, load_path: Path, beam_size: int=4, *args, **kwargs):
+
+    def __init__(self, load_path: Path, beam_size: int = 4, *args, **kwargs):
         self.lm = kenlm.Model(str(expand_path(load_path)))
         self.beam_size = beam_size
 

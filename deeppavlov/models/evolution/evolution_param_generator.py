@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 from copy import deepcopy
+from logging import getLogger
 from pathlib import Path
 from typing import List, Any
 
-from deeppavlov.core.common.registry import register
-from deeppavlov.core.common.file import read_json
-from deeppavlov.core.common.log import get_logger
-from deeppavlov.core.common.params_search import ParamsSearch
+import numpy as np
 
-log = get_logger(__name__)
+from deeppavlov.core.common.params_search import ParamsSearch
+from deeppavlov.core.common.registry import register
+
+log = getLogger(__name__)
 
 
 @register('params_evolution')
@@ -67,7 +67,7 @@ class ParamsEvolution(ParamsSearch):
                 with relative paths to evolving parameters
         n_params: number of evolving parameters
         evolution_model_id: identity number of model (the same for loaded pre-trained models)
-        models_path: path to models given in config variable `MODELS_PATH`. This variable \
+        models_path: path to models given in config variable `MODEL_PATH`. This variable \
             should be used as prefix to all fitted and trained model in config~
         eps: EPS value
         paths_to_fiton_dicts: list of lists of keys and/or integers (for list)\
@@ -86,7 +86,7 @@ class ParamsEvolution(ParamsSearch):
                  train_partition: int = 1,
                  elitism_with_weights: bool = False,
                  prefix: str = "evolve",
-                 models_path_variable: str = "MODELS_PATH",
+                 models_path_variable: str = "MODEL_PATH",
                  **kwargs):
         """
         Initialize evolution with random population
@@ -114,11 +114,11 @@ class ParamsEvolution(ParamsSearch):
             for ppath in occured_mpaths:
                 new_path = self.get_value_from_config(
                     self.basic_config,
-                    ppath + [path_name]).replace(models_path_variable, "MODELS_" + path_name.upper())
+                    ppath + [path_name]).replace(models_path_variable, "MODEL_" + path_name.upper())
                 self.insert_value_or_dict_into_config(self.basic_config, ppath + [path_name], new_path)
 
-        self.path_to_models_save_path = ["metadata", "variables", "MODELS_SAVE_PATH"]
-        self.path_to_models_load_path = ["metadata", "variables", "MODELS_LOAD_PATH"]
+        self.path_to_models_save_path = ["metadata", "variables", "MODEL_SAVE_PATH"]
+        self.path_to_models_load_path = ["metadata", "variables", "MODEL_LOAD_PATH"]
         self.insert_value_or_dict_into_config(self.basic_config, self.path_to_models_save_path, str(self.models_path))
         self.insert_value_or_dict_into_config(self.basic_config, self.path_to_models_load_path, str(self.models_path))
 

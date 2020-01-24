@@ -56,8 +56,8 @@
     "out": ["y_predicted"]
   },
   "train": {
-    "validate_best": false,
-    "test_best": true
+    "evaluation_targets": ["test"],
+    "class_name": "fit_trainer"
   },
   "metadata": {
     "variables": {
@@ -66,12 +66,9 @@
       "MODELS_PATH": "{ROOT_PATH}/models"
     },
     "requirements": [
-      "{DEEPPAVLOV_PATH}/requirements/spelling.txt"
+      "{DEEPPAVLOV_PATH}/requirements/spelling.txt",
+      "{DEEPPAVLOV_PATH}/requirements/kenlm.txt"
     ],
-    "labels": {
-      "telegram_utils": "ErrorModel",
-      "server_utils": "ErrorModel"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/error_model.tar.gz",

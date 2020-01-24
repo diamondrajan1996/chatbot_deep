@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from typing import Union, Optional
+from logging import getLogger
 from pathlib import Path
+from typing import Union, Optional
 
 from deeppavlov.core.commands.utils import expand_path
-from deeppavlov.core.common.log import get_logger
 
-
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 class Serializable(metaclass=ABCMeta):
@@ -28,7 +27,9 @@ class Serializable(metaclass=ABCMeta):
     :class:`deeppavlov.models.model.serializable.Serializable` is an abstract base class that expresses the interface
     for all models that can serialize data to a path.
     """
-    def __init__(self, save_path: Optional[Union[str, Path]], load_path: Optional[Union[str, Path]] = None, mode: str = 'infer',
+
+    def __init__(self, save_path: Optional[Union[str, Path]], load_path: Optional[Union[str, Path]] = None,
+                 mode: str = 'infer',
                  *args, **kwargs) -> None:
 
         if save_path:

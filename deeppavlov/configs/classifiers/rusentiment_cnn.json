@@ -34,8 +34,8 @@
         "fit_on": [
           "y"
         ],
-        "save_path": "{MODELS_PATH}/classes.dict",
-        "load_path": "{MODELS_PATH}/classes.dict",
+        "save_path": "{MODEL_PATH}/classes.dict",
+        "load_path": "{MODEL_PATH}/classes.dict",
         "in": "y",
         "out": "y_ids"
       },
@@ -82,8 +82,8 @@
         ],
         "main": true,
         "class_name": "keras_classification_model",
-        "save_path": "{MODELS_PATH}/model",
-        "load_path": "{MODELS_PATH}/model",
+        "save_path": "{MODEL_PATH}/model",
+        "load_path": "{MODEL_PATH}/model",
         "embedding_size": "#my_embedder.dim",
         "n_classes": "#classes_vocab.len",
         "kernel_sizes_cnn": [
@@ -93,8 +93,11 @@
         ],
         "filters_cnn": 256,
         "optimizer": "Adam",
-        "learning_rate": 0.01,
-        "learning_rate_decay": 0.1,
+        "learning_rate": [0.01, 1e-4],
+        "learning_rate_decay": "exponential",
+        "learning_rate_decay_batches": 5000,
+        "learning_rate_drop_patience": 5,
+        "learning_rate_drop_div": 5.0,
         "loss": "binary_crossentropy",
         "last_layer_activation": "softmax",
         "coef_reg_cnn": 1e-3,
@@ -123,7 +126,8 @@
     "epochs": 100,
     "batch_size": 64,
     "metrics": [
-      "sets_accuracy",
+      "f1_weighted",
+      "accuracy",
       "f1_macro",
       {
         "name": "roc_auc",
@@ -133,24 +137,26 @@
     "validation_patience": 5,
     "val_every_n_epochs": 1,
     "log_every_n_epochs": 1,
+    "tensorboard_log_dir": "{MODEL_PATH}/logs",
     "show_examples": false,
-    "validate_best": true,
-    "test_best": true
+    "evaluation_targets": [
+      "train",
+      "valid",
+      "test"
+    ],
+    "class_name": "nn_trainer"
   },
   "metadata": {
     "variables": {
       "ROOT_PATH": "~/.deeppavlov",
       "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
-      "MODELS_PATH": "{ROOT_PATH}/models/classifiers/rusentiment_v3"
+      "MODELS_PATH": "{ROOT_PATH}/models",
+      "MODEL_PATH": "{MODELS_PATH}/classifiers/rusentiment_v3"
     },
     "requirements": [
       "{DEEPPAVLOV_PATH}/requirements/tf.txt",
       "{DEEPPAVLOV_PATH}/requirements/fasttext.txt"
     ],
-    "labels": {
-      "telegram_utils": "IntentModel",
-      "server_utils": "KerasIntentModel"
-    },
     "download": [
       {
         "url": "http://files.deeppavlov.ai/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin",
@@ -158,7 +164,7 @@
       },
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/classifiers/rusentiment_v3.tar.gz",
-        "subdir": "{ROOT_PATH}/models/classifiers"
+        "subdir": "{MODELS_PATH}/classifiers"
       }
     ]
   }

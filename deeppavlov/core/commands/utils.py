@@ -21,33 +21,52 @@ from deeppavlov.core.common.file import read_json, find_config
 _T = TypeVar('_T', str, float, bool, list, dict)
 
 
-def _parse_config_property(item: _T, variables: Dict[str, Union[str, Path, float, bool, None]]) -> _T:
+def _parse_config_property(item: _T, variables: Dict[str, Union[str, Path, float, bool, int, None]],
+                           variables_exact: Dict[str, Union[str, Path, float, bool, int, None]]) -> _T:
     """Recursively apply config's variables values to its property"""
     if isinstance(item, str):
+        if item in variables_exact:
+            return variables_exact[item]
         return item.format(**variables)
     elif isinstance(item, list):
-        return [_parse_config_property(item, variables) for item in item]
+        return [_parse_config_property(item, variables, variables_exact) for item in item]
     elif isinstance(item, dict):
-        return {k: _parse_config_property(v, variables) for k, v in item.items()}
+        return {k: _parse_config_property(v, variables, variables_exact) for k, v in item.items()}
     else:
         return item
 
 
-def parse_config(config: Union[str, Path, dict]) -> dict:
-    """Read config's variables and apply their values to all its properties"""
+def _get_variables_from_config(config: Union[str, Path, dict]):
+    """Read config's variables"""
     if isinstance(config, (str, Path)):
         config = read_json(find_config(config))
 
     variables = {
         'DEEPPAVLOV_PATH': os.getenv(f'DP_DEEPPAVLOV_PATH', Path(__file__).parent.parent.parent)
     }
+    variables_exact = {f'{{{k}}}': v for k, v in variables.items()}
     for name, value in config.get('metadata', {}).get('variables', {}).items():
         env_name = f'DP_{name}'
         if env_name in os.environ:
             value = os.getenv(env_name)
-        variables[name] = value.format(**variables)
+        if value in variables_exact:
+            value = variables_exact[value]
+        elif isinstance(value, str):
+            value = value.format(**variables)
+        variables[name] = value
+        variables_exact[f'{{{name}}}'] = value
 
-    return _parse_config_property(config, variables)
+    return variables, variables_exact
+
+
+def parse_config(config: Union[str, Path, dict]) -> dict:
+    """Apply variables' values to all its properties"""
+    if isinstance(config, (str, Path)):
+        config = read_json(find_config(config))
+
+    variables, variables_exact = _get_variables_from_config(config)
+
+    return _parse_config_property(config, variables, variables_exact)
 
 
 def expand_path(path: Union[str, Path]) -> Path:
@@ -59,3 +78,12 @@ def import_packages(packages: list) -> None:
     """Import packages from list to execute their code."""
     for package in packages:
         __import__(package)
+
+
+def parse_value_with_config(value: Union[str, Path], config: Union[str, Path, dict]) -> Path:
+    """Fill the variables in `value` with variables values from `config`.
+    `value` should be a string. If `value` is a string of only variable, `value` will be replaced with
+    variable's value from config (the variable's value could be anything then)."""
+    variables, variables_exact = _get_variables_from_config(config)
+
+    return _parse_config_property(str(value), variables, variables_exact)

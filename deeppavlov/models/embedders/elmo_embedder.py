@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import sys
+from logging import getLogger
 from typing import Iterator, List, Union, Optional
-
 
 import numpy as np
 import tensorflow as tf
@@ -22,13 +22,12 @@ import tensorflow_hub as hub
 from overrides import overrides
 
 from deeppavlov.core.commands.utils import expand_path
-from deeppavlov.core.common.log import get_logger
 from deeppavlov.core.common.registry import register
 from deeppavlov.core.data.utils import zero_pad, chunk_generator
 from deeppavlov.core.models.component import Component
 from deeppavlov.core.models.tf_backend import TfModelMeta
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('elmo_embedder')
@@ -132,6 +131,7 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
 
 
     """
+
     def __init__(self, spec: str, elmo_output_names: Optional[List] = None,
                  dim: Optional[int] = None, pad_zero: bool = False,
                  concat_last_axis: bool = True, max_token: Optional[int] = None,
@@ -225,7 +225,7 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
             batch = [batch_line[:self.max_token] for batch_line in batch]
         tokens_length = [len(batch_line) for batch_line in batch]
         tokens_length_max = max(tokens_length)
-        batch = [batch_line + ['']*(tokens_length_max - len(batch_line)) for batch_line in batch]
+        batch = [batch_line + [''] * (tokens_length_max - len(batch_line)) for batch_line in batch]
 
         return batch, tokens_length
 
@@ -308,5 +308,7 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
         yield from ['<S>', '</S>', '<UNK>']
 
     def destroy(self):
-        for k in list(self.sess.graph.get_all_collection_keys()):
-            self.sess.graph.clear_collection(k)
+        if hasattr(self, 'sess'):
+            for k in list(self.sess.graph.get_all_collection_keys()):
+                self.sess.graph.clear_collection(k)
+        super().destroy()

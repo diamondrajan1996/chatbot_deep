@@ -14,14 +14,14 @@
 
 from abc import ABCMeta, abstractmethod
 
-from deeppavlov.core.common.log import get_logger
+from logging import getLogger
 
-
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 class Component(metaclass=ABCMeta):
     """Abstract class for all callables that could be used in Chainer's pipe."""
+
     @abstractmethod
     def __call__(self, *args, **kwargs):
         pass
@@ -30,7 +30,12 @@ class Component(metaclass=ABCMeta):
         pass
 
     def destroy(self):
-        pass
+        attr_list = list(self.__dict__.keys())
+        for attr_name in attr_list:
+            attr = getattr(self, attr_name)
+            if hasattr(attr, 'destroy'):
+                attr.destroy()
+            delattr(self, attr_name)
 
     def serialize(self):
         from deeppavlov.core.models.serializable import Serializable

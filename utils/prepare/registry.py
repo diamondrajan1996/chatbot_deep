@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pkgutil
 import json
+import pkgutil
 from importlib import import_module, reload
 
 import deeppavlov
-from deeppavlov.core.common.registry import _registry_path as c_registry_path, _REGISTRY as C_REGISTRY
 from deeppavlov.core.common.metrics_registry import _registry_path as m_registry_path, _REGISTRY as M_REGISTRY
+from deeppavlov.core.common.registry import _registry_path as c_registry_path, _REGISTRY as C_REGISTRY
 
 if __name__ == '__main__':
     C_REGISTRY.clear()
     M_REGISTRY.clear()
 
-    for _, pkg_name, _ in pkgutil.walk_packages(deeppavlov.__path__, deeppavlov.__name__+'.'):
+    for _, pkg_name, _ in pkgutil.walk_packages(deeppavlov.__path__, deeppavlov.__name__ + '.'):
         if pkg_name not in ('deeppavlov.core.common.registry', 'deeppavlov.core.common.metrics_registry'):
             reload(import_module(pkg_name))
 

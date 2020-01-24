@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from pathlib import Path
 from typing import Dict, Optional, Union
 
 from overrides import overrides
 
-from deeppavlov.core.data.dataset_reader import DatasetReader
 from deeppavlov.core.common.registry import register
-from deeppavlov.core.common.log import get_logger
+from deeppavlov.core.data.dataset_reader import DatasetReader
 
-log = get_logger(__name__)
+log = getLogger(__name__)
 
 
 @register('file_paths_reader')
@@ -57,7 +57,7 @@ class FilePathsReader(DatasetReader):
             paths = Path(data_path).resolve().glob(tgt)
             files = [file for file in paths if Path(file).is_file()]
             paths_info = Path(data_path, tgt).absolute().as_posix()
-            if not(files):
+            if not files:
                 raise Exception(f"Not find files. Data path '{paths_info}' does not exist or does not hold files!")
             else:
                 log.info(f"Found {len(files)} files located '{paths_info}'.")
