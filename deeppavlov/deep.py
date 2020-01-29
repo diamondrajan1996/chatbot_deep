@@ -64,54 +64,11 @@ parser.add_argument("--socket-file", default="/tmp/deeppavlov_socket.s", type=st
 
 def main():
     args = parser.parse_args()
-    pipeline_config_path = find_config(args.config_path)
 
-    if args.download or args.mode == 'download':
-        deep_download(pipeline_config_path)
-
-    if args.mode == 'train':
-        train_evaluate_model_from_config(pipeline_config_path,
-                                         recursive=args.recursive,
-                                         start_epoch_num=args.start_epoch_num)
-    elif args.mode == 'evaluate':
-        train_evaluate_model_from_config(pipeline_config_path, to_train=False, start_epoch_num=args.start_epoch_num)
-    elif args.mode == 'interact':
-        interact_model(pipeline_config_path)
-    elif args.mode == 'telegram':
-        interact_model_by_telegram(model_config=pipeline_config_path, token=args.token)
-    elif args.mode == 'msbot':
-        start_ms_bf_server(model_config=pipeline_config_path,
-                           app_id=args.ms_id,
-                           app_secret=args.ms_secret,
-                           port=args.port,
-                           https=args.https,
-                           ssl_key=args.key,
-                           ssl_cert=args.cert)
-    elif args.mode == 'alexa':
-        start_alexa_server(model_config=pipeline_config_path,
-                           port=args.port,
-                           https=args.https,
-                           ssl_key=args.key,
-                           ssl_cert=args.cert)
-    elif args.mode == 'alice':
-        start_alice_server(model_config=pipeline_config_path,
-                           port=args.port,
-                           https=args.https,
-                           ssl_key=args.key,
-                           ssl_cert=args.cert)
-    elif args.mode == 'riseapi':
-        start_model_server(pipeline_config_path, args.https, args.key, args.cert, port=args.port)
-    elif args.mode == 'risesocket':
-        start_socket_server(pipeline_config_path, args.socket_type, port=args.port, socket_file=args.socket_file)
-    elif args.mode == 'predict':
-        predict_on_stream(pipeline_config_path, args.batch_size, args.file_path)
+    if args.mode == 'riseapi':
+        start_model_server(args.config_path, args.port)
     elif args.mode == 'install':
-        install_from_config(pipeline_config_path)
-    elif args.mode == 'crossval':
-        if args.folds < 2:
-            log.error('Minimum number of Folds is 2')
-        else:
-            calc_cv_score(pipeline_config_path, n_folds=args.folds, is_loo=False)
+        pass
 
 
 if __name__ == "__main__":

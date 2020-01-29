@@ -14,6 +14,7 @@
 
 import asyncio
 import logging
+import random
 from collections import namedtuple
 from pathlib import Path
 from ssl import PROTOCOL_TLSv1_2
@@ -40,17 +41,9 @@ SERVER_CONFIG_PATH = get_settings_path() / 'server_config.json'
 SSLConfig = namedtuple('SSLConfig', ['version', 'keyfile', 'certfile'])
 
 
-class ProbeFilter(logging.Filter):
-    """ProbeFilter class is used to filter POST requests to /probe endpoint from logs."""
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        """To log the record method should return True."""
-        return 'POST /probe HTTP' not in record.getMessage()
-
 
 log = logging.getLogger(__name__)
 uvicorn_log = logging.getLogger('uvicorn')
-uvicorn_log.addFilter(ProbeFilter())
 app = FastAPI(__file__)
 
 app.add_middleware(
@@ -125,89 +118,55 @@ def redirect_root_to_docs(fast_app: FastAPI, func_name: str, endpoint: str, meth
         return response
 
 
-def interact(model: Chainer, payload: Dict[str, Optional[List]]) -> List:
-    model_args = payload.values()
-    dialog_logger.log_in(payload)
-    error_msg = None
-    lengths = {len(model_arg) for model_arg in model_args if model_arg is not None}
+greeting_begin_texts = [
+    "Хорошо здоровается тот, кто здоровается первым.",
+    "Я встретил Вас. Значит: «День добрый!»",
+    "'Очень добрый день! А это там что? И это все мне ?!!' ©Маша и медведь",
+    "'Я пришёл к тебе с приветом, топором и пистолетом.' ©Источник неизвестен",
+    "Раньше когда люди здоровались, снимали шляпу, а сейчас при встрече вытаскивают наушники из ушей.",
+]
+greeting_body_text = (
+    "Надеюсь у Вас хорошее настроение, я чат-бот и готов с вами "
+    "пообщаться в свободной форме. Не могу гарантировать, но постараюсь отвечать на вопросы связанные с "
+    "реальными фактами. Ответы на вопросы о фактах могут быть не совсем верными или даже совсем неверными, "
+    "если это выходит за рамки моих знаний. К моему сожалению, я сейчас не так много знаю. "
+    "Я с радостью постараюсь поддержать диалог на любую интересную для Вас тему."
+)
+greeting_end_texts = [
+    "Как дела?",
+    "О чем бы ты хотел поговорить с чат-ботом?",
+    "Что делаешь?",
+    "О чем хочешь поговорить?",
+]
 
-    if not lengths:
-        error_msg = 'got empty request'
-    elif 0 in lengths:
-        error_msg = 'got empty array as model argument'
-    elif len(lengths) > 1:
-        error_msg = 'got several different batch sizes'
-
-    if error_msg is not None:
-        log.error(error_msg)
-        raise HTTPException(status_code=400, detail=error_msg)
-
-    batch_size = next(iter(lengths))
-    model_args = [arg or [None] * batch_size for arg in model_args]
-
-    prediction = model(*model_args)
-    if len(model.out_params) == 1:
-        prediction = [prediction]
-    prediction = list(zip(*prediction))
-    result = jsonify_data(prediction)
-    dialog_logger.log_out(result)
-    return result
+greeting_text = "Hi!"
 
 
-def test_interact(model: Chainer, payload: Dict[str, Optional[List]]) -> List[str]:
-    model_args = [arg or ["Test string."] for arg in payload.values()]
-    try:
-        _ = model(*model_args)
-        return ["Test passed"]
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=repr(e))
-
-
-def start_model_server(model_config: Path,
-                       https: Optional[bool] = None,
-                       ssl_key: Optional[str] = None,
-                       ssl_cert: Optional[str] = None,
+def start_model_server(model_config: str,
                        port: Optional[int] = None) -> None:
 
-    server_params = get_server_params(model_config)
+    if model_config == 'greeting_skill':
+        @app.post('/model', summary='A model endpoint')
+        async def answer(request: Dict = Body(...)):
+            batch_len = len(request["x"])
+            response = [
+                (f"{random.choice(greeting_begin_texts)}\n{greeting_body_text}\n{random.choice(greeting_end_texts)}",
+                 1.0)
+                for _ in range(batch_len)
+            ]
 
-    host = server_params['host']
-    port = port or server_params['port']
-    model_endpoint = server_params['model_endpoint']
-    model_args_names = server_params['model_args_names']
+            return response
 
-    ssl_config = get_ssl_params(server_params, https, ssl_key=ssl_key, ssl_cert=ssl_cert)
+    elif model_config == 'rule_based_selector':
+        @app.post('/model', summary='A model endpoint')
+        async def answer(request: Dict = Body(...)):
+            utters_len_batch = [len(utters) for utters in request["x"]]
+            response = [
+                ("greeting_skill" if utters_len < 2 else "neuro_chitchat_odqa_selector") for utters_len in
+                utters_len_batch
+            ]
+            return response
+    else:
+        raise ValueError(f'DP Agent Skill "{model_config}" not implemented')
 
-    model = build_model(model_config)
-
-    def batch_decorator(cls: MetaModel) -> MetaModel:
-        cls.__annotations__ = {arg_name: list for arg_name in model_args_names}
-        cls.__fields__ = {arg_name: Field(name=arg_name, type_=list, class_validators=None,
-                                          model_config=BaseConfig, required=False, schema=Schema(None))
-                          for arg_name in model_args_names}
-        return cls
-
-    @batch_decorator
-    class Batch(BaseModel):
-        pass
-
-    redirect_root_to_docs(app, 'answer', model_endpoint, 'post')
-
-    model_endpoint_post_example = {arg_name: ['string'] for arg_name in model_args_names}
-
-    @app.post(model_endpoint, summary='A model endpoint')
-    async def answer(item: Batch = Body(..., example=model_endpoint_post_example)) -> List:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, interact, model, item.dict())
-
-    @app.post('/probe', include_in_schema=False)
-    async def probe(item: Batch) -> List[str]:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, test_interact, model, item.dict())
-
-    @app.get('/api', summary='Model argument names')
-    async def api() -> List[str]:
-        return model_args_names
-
-    uvicorn.run(app, host=host, port=port, logger=uvicorn_log, ssl_version=ssl_config.version,
-                ssl_keyfile=ssl_config.keyfile, ssl_certfile=ssl_config.certfile, timeout_keep_alive=20)
+    uvicorn.run(app, host='0.0.0.0', port=port, logger=uvicorn_log, timeout_keep_alive=20)
