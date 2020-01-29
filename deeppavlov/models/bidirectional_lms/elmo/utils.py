@@ -25,7 +25,7 @@ DTYPE_INT = 'int64'
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
-def load_model(options, ckpt_file, batch_size=256):
+def load_model(options, ckpt_file, batch_size=256, to_init_states=True):
     '''
     Get the test set perplexity!
     '''
@@ -46,7 +46,6 @@ def load_model(options, ckpt_file, batch_size=256):
         # batch is bounded above batch_size * unroll_steps
         test_options['batch_size'] = batch_size
         test_options['unroll_steps'] = 1
-        # model = InferLanguageModel(test_options, False)
         model = InferLanguageModel(test_options, False)
         # we use the "Saver" class to load the variables
         loader = tf.train.Saver()
@@ -56,33 +55,32 @@ def load_model(options, ckpt_file, batch_size=256):
     # perplexity is exp(loss)
     init_state_tensors = model.init_lstm_state
     final_state_tensors = model.final_lstm_state
-    if not char_inputs:
-        feed_dict = {
-            model.token_ids:
-                    np.zeros([batch_size, unroll_steps], dtype=np.int64)
-        }
-        if bidirectional:
-            feed_dict.update({
-                model.token_ids_reverse:
-                    np.zeros([batch_size, unroll_steps], dtype=np.int64)
-            })
+    if to_init_states:
+        if not char_inputs:
+            feed_dict = {
+                model.token_ids:
+                        np.zeros([batch_size, unroll_steps], dtype=np.int64)
+            }
+            if bidirectional:
+                feed_dict.update({
+                    model.token_ids_reverse:
+                        np.zeros([batch_size, unroll_steps], dtype=np.int64)
+                })
+        else:
+            feed_dict = {
+                model.tokens_characters:
+                   np.zeros([batch_size, unroll_steps, max_chars],
+                                 dtype=np.int32)
+            }
+            if bidirectional:
+                feed_dict.update({
+                    model.tokens_characters_reverse:
+                        np.zeros([batch_size, unroll_steps, max_chars],
+                            dtype=np.int32)
+                })
+        init_state_values = sess.run(init_state_tensors, feed_dict=feed_dict)
     else:
-        feed_dict = {
-            model.tokens_characters:
-               np.zeros([batch_size, unroll_steps, max_chars],
-                             dtype=np.int32)
-        }
-        if bidirectional:
-            feed_dict.update({
-                model.tokens_characters_reverse:
-                    np.zeros([batch_size, unroll_steps, max_chars],
-                        dtype=np.int32)
-            })
-
-    init_state_values = sess.run(
-        init_state_tensors,
-        feed_dict=feed_dict)
-
+        init_state_values = None
     return model, sess, init_state_tensors, init_state_values, final_state_tensors
 
 

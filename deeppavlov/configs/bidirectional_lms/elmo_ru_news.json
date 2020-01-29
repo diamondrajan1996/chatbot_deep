@@ -10,8 +10,11 @@
         "out": ["tokens"]
       },
       {
+        "id": "main",
         "class_name": "elmo_bilm",
         "mini_batch_size": 4,
+        "single_pass": true,
+        "init_states_before_all": false,
         "in": [
           "tokens"
         ],

@@ -123,7 +123,7 @@ class InferLanguageModel(LanguageModel):
         # now calculate losses
         # loss for each direction of the LSTM
         self.individual_losses = []
-        self.individual_output_softmaxes = []
+        self.flat_output_softmaxes = []
 
         if self.bidirectional:
             next_ids = [self.next_token_id, self.next_token_id_reverse]
@@ -159,8 +159,7 @@ class InferLanguageModel(LanguageModel):
                         labels=tf.squeeze(next_token_id_flat, squeeze_dims=[1])
                     )
                 
-
-            self.individual_output_softmaxes.append(tf.nn.softmax(output_scores))
+            self.flat_output_softmaxes.append(tf.nn.softmax(output_scores))
             # self.individual_losses.append(tf.reduce_mean(losses))
 
         # now make the total loss -- it's the mean of the individual losses
