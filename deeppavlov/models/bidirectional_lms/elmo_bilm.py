@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import sys
-from typing import Iterator, List, Union, Optional
+from typing import Iterator, List, Union, Optional, Dict
 
 
 import json
 import numpy as np
+from sklearn.utils.extmath import softmax
 import tensorflow as tf
 from overrides import overrides
 
@@ -282,6 +283,58 @@ class ELMoEmbedder(Component, metaclass=TfModelMeta):
 
         return self.batcher._lm_vocab._id_to_word
 
-
     def destroy(self):
         self.sess.close()
+
+
+def my_softmax(x, axis=-1):
+    x -= np.max(x, axis=axis)
+    answer = np.exp(x)
+    answer /= np.sum(answer)
+    return answer
+
+
+@register('elmo_probability_predictor')
+class ELMoWordProbabilityPredictor(ELMoEmbedder):
+
+    def __init__(self, **kwargs):
+        super().__init__(output_layer="lstm", **kwargs)
+        self.vocab = self.get_vocab()
+        self.inverse_vocab = {word: i for i, word in enumerate(self.vocab)}
+
+    def _load(self):
+        model, sess, init_states, batcher, options = super()._load()
+        config = tf.ConfigProto(allow_soft_placement=True)
+        sess = tf.Session(config=config)
+        sess.run(tf.global_variables_initializer())
+        self.softmax_W = sess.run(model.softmax_W, dict())
+        self.softmax_b = sess.run(model.softmax_b, dict())
+        return model, sess, init_states, batcher, options
+
+
+    def _mini_batch_fit(self, *args, **kwargs):
+        raise NotImplementedError("ELMoWordProbabilityPredictor does not implement '_mini_batch_fit'")
+
+    def __call__(self, batch: List[List[str]], candidate_batch: List[Union[List[List[str]], Dict[int, List[str]]]], *args, **kwargs):
+        states = super()(batch)
+        answer = []
+        for state_sent, candidate_sent in zip(states, candidate_batch):
+            if isinstance(candidate_sent, dict):
+                candidate_sent = [candidate_sent[i] if i in candidate_sent else [] for i in range(len(state_sent))]
+            curr_answer = [[[], []] for _ in state_sent]
+            for i, ((left_state, right_state), candidates) in enumerate(zip(state_sent, candidate_sent)):
+                if len(candidates) == 0:
+                    continue
+                elif len(candidates) == 1:
+                    curr_answer[i] = [[1.0], [1.0]]
+                    continue
+                candidate_indexes = [self.inverse_vocab[word] for word in candidates]
+                candidate_embeddings = self.softmax_W[candidate_indexes]
+                candidate_biases = self.softmax_b[candidate_indexes]
+                left_logits = np.dot(left_state, candidate_embeddings .T) + candidate_biases
+                right_logits = np.dot(right_state, candidate_embeddings .T) + candidate_biases
+                curr_answer[i] = [softmax(left_logits), softmax(right_logits)]
+            answer.append(curr_answer)
+        return answer
+
+
